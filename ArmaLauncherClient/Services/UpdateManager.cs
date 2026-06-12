@@ -2539,17 +2539,17 @@ public sealed class UpdateManager : IAsyncDisposable
         File.WriteAllText(Path.Combine(dir, ".version"), version);
     }
 
-    private void EnsureGameHashFile(string modelId, string gameDirectory)
+    private bool EnsureGameHashFile(string modelId, string gameDirectory)
     {
         if (!IsGameModel(modelId))
-            return;
+            return true;
 
         try
         {
             if (string.IsNullOrWhiteSpace(gameDirectory))
             {
                 FileLogger.Log("[HASHE] Skipped: game directory is empty");
-                return;
+                return false;
             }
 
             var normalizedGameDirectory = Path.GetFullPath(gameDirectory)
@@ -2568,7 +2568,7 @@ public sealed class UpdateManager : IAsyncDisposable
                 if (currentBytes.AsSpan().SequenceEqual(expectedBytes))
                 {
                     FileLogger.Log($"[HASHE] OK: {hashFilePath} already matches generated hash for {hardwareGuid}");
-                    return;
+                    return true;
                 }
 
                 FileLogger.Log($"[HASHE] Mismatch detected, regenerating: {hashFilePath}");
@@ -2578,13 +2578,32 @@ public sealed class UpdateManager : IAsyncDisposable
                 FileLogger.Log($"[HASHE] Creating missing hash file: {hashFilePath}");
             }
 
-            File.WriteAllBytes(hashFilePath, expectedBytes);
+            using (var stream = new FileStream(hashFilePath, FileMode.Create, FileAccess.Write, FileShare.Read, 4096, FileOptions.WriteThrough))
+            {
+                stream.Write(expectedBytes, 0, expectedBytes.Length);
+                stream.Flush(true);
+            }
+
+            var writtenBytes = File.ReadAllBytes(hashFilePath);
+            if (!writtenBytes.AsSpan().SequenceEqual(expectedBytes))
+            {
+                FileLogger.Log($"[HASHE] Verification failed after write: {hashFilePath}");
+                return false;
+            }
+
             FileLogger.Log($"[HASHE] Written: {hashFilePath}");
+            return true;
         }
         catch (Exception ex)
         {
             FileLogger.Log($"[HASHE] Failed to generate .hashe: {ex.Message}");
+            return false;
         }
+    }
+
+    public bool EnsureCurrentGameHashFile(string? gameDirectory = null)
+    {
+        return EnsureGameHashFile(GameIdPrefix, gameDirectory ?? _gameDirectory);
     }
 
     private static byte[] BuildWeeGamesHashBytes(string gameDirectory, out string hardwareGuid)

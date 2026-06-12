@@ -284,6 +284,7 @@ public partial class App : Application
 
             // Проверяем первый запуск (игра не установлена и пути дефолтные)
             var updateManager = _host.Services.GetRequiredService<UpdateManager>();
+            TryAutoConfigurePathsFromLauncherLocation(updateManager);
             if (ShouldShowFirstSetup(updateManager))
             {
                 var (confirmed, gamePath, modsPath) = UC.FirstSetupDialog.Show(
@@ -373,10 +374,7 @@ public partial class App : Application
     private static bool ShouldShowFirstSetup(UpdateManager updateManager)
     {
         // Проверяем файл маркера первого запуска
-        var markerPath = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "ArmaLauncher",
-            ".first_setup_done");
+        var markerPath = GetFirstSetupMarkerPath();
 
         if (File.Exists(markerPath))
         {
@@ -407,6 +405,60 @@ public partial class App : Application
         FileLogger.Log("First setup detected - showing setup dialog");
         return true;
     }
+
+    private static void TryAutoConfigurePathsFromLauncherLocation(UpdateManager updateManager)
+    {
+        var markerPath = GetFirstSetupMarkerPath();
+        if (File.Exists(markerPath))
+            return;
+
+        try
+        {
+            var launcherDirectory = Path.GetFullPath(AppContext.BaseDirectory)
+                .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            var gameExePath = Path.Combine(launcherDirectory, "ArmaReforgerSteam.exe");
+
+            if (!File.Exists(gameExePath))
+                return;
+
+            FileLogger.Log($"First setup auto-detect: game found near launcher at {launcherDirectory}");
+
+            if (!string.Equals(updateManager.GameInstallRoot, launcherDirectory, StringComparison.OrdinalIgnoreCase))
+            {
+                updateManager.SetGamePath(launcherDirectory);
+                FileLogger.Log($"First setup auto-detect: Game path set to {launcherDirectory}");
+            }
+
+            var parentDirectory = Directory.GetParent(launcherDirectory)?.FullName;
+            var preferredModsPath = ResolvePreferredModsPath(launcherDirectory, parentDirectory);
+            if (!string.Equals(updateManager.ModsInstallRoot, preferredModsPath, StringComparison.OrdinalIgnoreCase))
+            {
+                updateManager.SetModsPath(preferredModsPath);
+                FileLogger.Log($"First setup auto-detect: Mods path set to {preferredModsPath}");
+            }
+        }
+        catch (Exception ex)
+        {
+            FileLogger.Log($"First setup auto-detect failed: {ex.Message}");
+        }
+    }
+
+    private static string ResolvePreferredModsPath(string launcherDirectory, string? parentDirectory)
+    {
+        var candidates = new List<string>();
+
+        if (!string.IsNullOrWhiteSpace(parentDirectory))
+            candidates.Add(Path.Combine(parentDirectory, "Addons"));
+
+        candidates.Add(Path.Combine(launcherDirectory, "Addons"));
+
+        return candidates.FirstOrDefault(Directory.Exists) ?? candidates[0];
+    }
+
+    private static string GetFirstSetupMarkerPath() => Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        "ArmaLauncher",
+        ".first_setup_done");
 
     private static void CreateFirstSetupMarker(string markerPath)
     {

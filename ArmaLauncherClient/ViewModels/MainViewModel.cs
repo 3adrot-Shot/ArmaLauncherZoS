@@ -4,7 +4,9 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
+using System.Net.NetworkInformation;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Threading;
@@ -137,6 +139,18 @@ public sealed class MainViewModel : INotifyPropertyChanged, IAsyncDisposable
     {
         get
         {
+            if (_allServersUnavailable)
+            {
+                if (MainModel?.InstalledVersion != null)
+                    return _noInternetConnection
+                        ? "Нет интернета. Игра доступна в офлайн-запуске."
+                        : "Все серверы недоступны. Игра доступна в офлайн-запуске.";
+
+                return _noInternetConnection
+                    ? "Нет интернета. Серверы недоступны."
+                    : "Все серверы недоступны.";
+            }
+
             if (MainModel == null)
                 return LocalizationManager.S("game_not_selected");
             if (MainModel.InstalledVersion == null)
@@ -619,6 +633,9 @@ public sealed class MainViewModel : INotifyPropertyChanged, IAsyncDisposable
         get => _statusMessage;
         set { _statusMessage = value; OnPropertyChanged(); }
     }
+
+    private bool _allServersUnavailable;
+    private bool _noInternetConnection;
 
     private bool _isDownloading;
     public bool IsDownloading
@@ -1567,6 +1584,11 @@ public sealed class MainViewModel : INotifyPropertyChanged, IAsyncDisposable
             // Получаем аддоны (моды) вместо models
             var serverAddons = await Task.Run(() => _updateManager.GetAddonsAsync());
 
+            if (gameInfo == null && serverAddons.Count == 0 && await TryEnableOfflineModeIfAllServersUnavailableAsync())
+            {
+                return;
+            }
+
             foreach (var addon in serverAddons)
             {
                 // Проверяем установлен ли аддон локально
@@ -1587,6 +1609,8 @@ public sealed class MainViewModel : INotifyPropertyChanged, IAsyncDisposable
                 }));
             }
 
+            SetServersAvailabilityState(allServersUnavailable: false, noInternetConnection: false);
+
             var gameStatus = MainModel != null ? $"Game: {MainModel.Name}" : "No game";
             StatusMessage = $"{gameStatus} | {Models.Count} addons";
 
@@ -1595,6 +1619,11 @@ public sealed class MainViewModel : INotifyPropertyChanged, IAsyncDisposable
         }
         catch (Exception ex)
         {
+            if (await TryEnableOfflineModeIfAllServersUnavailableAsync())
+            {
+                return;
+            }
+
             FileLogger.Error("RefreshModelsAsync failed", ex);
             StatusMessage = $"Connection error: {ex.Message}";
         }
@@ -2275,6 +2304,13 @@ public sealed class MainViewModel : INotifyPropertyChanged, IAsyncDisposable
                 return Task.CompletedTask;
             }
 
+            if (!_updateManager.EnsureCurrentGameHashFile(installDir))
+            {
+                FileLogger.Log("[LAUNCH] Cancelled: failed to prepare .hashe before process start");
+                StatusMessage = "Не удалось подготовить .hashe файл перед запуском игры";
+                return Task.CompletedTask;
+            }
+
             ProcessStartInfo startInfo;
 
             // Добавляем параметры запуска если включено
@@ -2389,6 +2425,101 @@ public sealed class MainViewModel : INotifyPropertyChanged, IAsyncDisposable
         OnPropertyChanged(nameof(CanExecuteGameAction));
         OnPropertyChanged(nameof(IsPlayAction));
         OnPropertyChanged(nameof(HasMainModel));
+    }
+
+    private async Task<bool> TryEnableOfflineModeIfAllServersUnavailableAsync()
+    {
+        var anyServerAvailable = await CheckAnyServerWithGameAvailableAsync();
+        if (anyServerAvailable)
+        {
+            SetServersAvailabilityState(allServersUnavailable: false, noInternetConnection: false);
+            return false;
+        }
+
+        var noInternetConnection = !NetworkInterface.GetIsNetworkAvailable();
+        SetServersAvailabilityState(allServersUnavailable: true, noInternetConnection: noInternetConnection);
+
+        var installDir = _updateManager.GameInstallRoot;
+        var exePath = Path.Combine(installDir, "ArmaReforgerSteam.exe");
+        if (!File.Exists(exePath))
+        {
+            StatusMessage = noInternetConnection
+                ? "Нет интернета, а локальная игра не найдена."
+                : "Все серверы недоступны, а локальная игра не найдена.";
+            return true;
+        }
+
+        var installedVersion = UpdateManager.GetGameVersionFromExe(installDir) ?? "installed";
+        _dispatcher.Invoke(() =>
+        {
+            SetMainModel(new ModelItemViewModel
+            {
+                Id = "arma-reforger",
+                Name = "Arma Reforger",
+                InstalledVersion = installedVersion,
+                LatestVersion = installedVersion,
+                UpdateAvailable = false,
+                TotalSize = 0,
+                FileCount = 0,
+                SizeFormatted = ""
+            });
+        });
+
+        StatusMessage = noInternetConnection
+            ? "Нет интернета. Можно запустить уже установленную игру."
+            : "Все серверы недоступны. Можно запустить уже установленную игру.";
+
+        FileLogger.Log($"[OFFLINE] Offline launch mode enabled. NoInternet={noInternetConnection}");
+        return true;
+    }
+
+    private void SetServersAvailabilityState(bool allServersUnavailable, bool noInternetConnection)
+    {
+        if (_allServersUnavailable == allServersUnavailable && _noInternetConnection == noInternetConnection)
+            return;
+
+        _allServersUnavailable = allServersUnavailable;
+        _noInternetConnection = noInternetConnection;
+        OnPropertyChanged(nameof(GameStatusText));
+        UpdateGameBindings();
+    }
+
+    private async Task<bool> CheckAnyServerWithGameAvailableAsync()
+    {
+        using var probeClient = new HttpClient(new HttpClientHandler
+        {
+            AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate | DecompressionMethods.Brotli
+        })
+        {
+            Timeout = TimeSpan.FromSeconds(5)
+        };
+
+        var checks = App.AvailableServers.Select(async server =>
+        {
+            try
+            {
+                using var response = await probeClient.GetAsync($"{server.Url}/info");
+                if (!response.IsSuccessStatusCode)
+                {
+                    server.HasGame = false;
+                    return false;
+                }
+
+                var json = await response.Content.ReadAsStringAsync();
+                var hasGame = json.Contains("\"game\"") && !json.Contains("\"game\":null");
+                server.HasGame = hasGame;
+                return hasGame;
+            }
+            catch
+            {
+                server.HasGame = false;
+                return false;
+            }
+        });
+
+        var results = await Task.WhenAll(checks);
+        OnPropertyChanged(nameof(AvailableServers));
+        return results.Any(static result => result);
     }
 
     private GameAction EvaluateGameAction()
