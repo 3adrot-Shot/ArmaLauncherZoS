@@ -1,0 +1,77 @@
+﻿<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><OutputType>WinExe</OutputType><TargetFramework>net10.0-windows</TargetFramework><Nullable>enable</Nullable><ImplicitUsings>enable</ImplicitUsings><UseWPF>true</UseWPF><ApplicationIcon>Images\Logos\OnlyLogoAU_BF.ico</ApplicationIcon><Configurations>Debug;Release;Publish</Configurations><AssemblyVersion>1.0.0.5</AssemblyVersion><FileVersion>1.0.0.5</FileVersion></PropertyGroup><PropertyGroup Condition="'$(Configuration)' == 'Publish'">
+  <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+  <SelfContained>true</SelfContained>
+  <PublishSingleFile>true</PublishSingleFile>
+  <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+  <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+  <DebugType>none</DebugType>
+  <DebugSymbols>false</DebugSymbols>
+</PropertyGroup><ItemGroup>
+  <None Remove="Images\BackWinter.jpg" />
+  <None Remove="Images\Back\ar3zka.png" />
+  <None Remove="Images\Back\AU.png" />
+  <None Remove="Images\ImagesPatch\1.jpg" />
+  <None Remove="Images\ImagesPatch\10.jpg" />
+  <None Remove="Images\ImagesPatch\11.jpg" />
+  <None Remove="Images\ImagesPatch\12.jpg" />
+  <None Remove="Images\ImagesPatch\13.jpg" />
+  <None Remove="Images\ImagesPatch\14.jpg" />
+  <None Remove="Images\ImagesPatch\15.jpg" />
+  <None Remove="Images\ImagesPatch\16.jpg" />
+  <None Remove="Images\ImagesPatch\17.jpg" />
+  <None Remove="Images\ImagesPatch\18.jpg" />
+  <None Remove="Images\ImagesPatch\19.jpg" />
+  <None Remove="Images\ImagesPatch\2.jpg" />
+  <None Remove="Images\ImagesPatch\3.jpg" />
+  <None Remove="Images\ImagesPatch\4.jpg" />
+  <None Remove="Images\ImagesPatch\5.jpg" />
+  <None Remove="Images\ImagesPatch\6.jpg" />
+  <None Remove="Images\ImagesPatch\7.jpg" />
+  <None Remove="Images\ImagesPatch\8.jpg" />
+  <None Remove="Images\ImagesPatch\9.jpg" />
+  <None Remove="Images\Logos\OnlyLogoAU_BF.ico" />
+  <None Remove="Images\logo_zos.png" />
+  <None Remove="Images\logo_zos2.png" />
+  <None Remove="Images\OnlyLogoAU.png" />
+</ItemGroup><ItemGroup>
+  <Content Include="Images\Logos\OnlyLogoAU_BF.ico" />
+</ItemGroup><ItemGroup>
+  <Resource Include="Images\Back\ar3zka.png" />
+  <Resource Include="Images\Back\AU.png" />
+  <Resource Include="Images\ImagesPatch\1.jpg" />
+</ItemGroup><ItemGroup><PackageReference Include="ZstdSharp.Port" Version="0.8.4" /><PackageReference Include="NSec.Cryptography" Version="24.4.0" /><PackageReference Include="MessagePack" Version="3.0.300" /><PackageReference Include="Microsoft.Extensions.Http" Version="9.0.0" /><PackageReference Include="Polly" Version="8.5.0" /><PackageReference Include="Polly.Core" Version="8.5.0" /><PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" /><PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.0" /></ItemGroup><ItemGroup>
+  <Resource Include="Images\BackWinter.jpg" />
+  <Resource Include="Images\ImagesPatch\10.jpg" />
+  <Resource Include="Images\ImagesPatch\11.jpg" />
+  <Resource Include="Images\ImagesPatch\12.jpg" />
+  <Resource Include="Images\ImagesPatch\13.jpg" />
+  <Resource Include="Images\ImagesPatch\14.jpg" />
+  <Resource Include="Images\ImagesPatch\15.jpg" />
+  <Resource Include="Images\ImagesPatch\16.jpg" />
+  <Resource Include="Images\ImagesPatch\17.jpg" />
+  <Resource Include="Images\ImagesPatch\18.jpg" />
+  <Resource Include="Images\ImagesPatch\19.jpg" />
+  <Resource Include="Images\ImagesPatch\2.jpg" />
+  <Resource Include="Images\ImagesPatch\3.jpg" />
+  <Resource Include="Images\ImagesPatch\4.jpg" />
+  <Resource Include="Images\ImagesPatch\5.jpg" />
+  <Resource Include="Images\ImagesPatch\6.jpg" />
+  <Resource Include="Images\ImagesPatch\7.jpg" />
+  <Resource Include="Images\ImagesPatch\8.jpg" />
+  <Resource Include="Images\ImagesPatch\9.jpg" />
+  <Resource Include="Images\Logos\OnlyLogoAU_BF.ico" />
+  <Resource Include="Images\logo_zos.png" />
+  <Resource Include="Images\logo_zos2.png" />
+  <Resource Include="Images\OnlyLogoAU.png" />
+</ItemGroup><ItemGroup>
+  <Compile Update="Properties\Settings.Designer.cs">
+    <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    <AutoGen>True</AutoGen>
+    <DependentUpon>Settings.settings</DependentUpon>
+  </Compile>
+</ItemGroup><ItemGroup>
+  <None Update="Properties\Settings.settings">
+    <Generator>PublicSettingsSingleFileGenerator</Generator>
+    <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+  </None>
+</ItemGroup></Project>

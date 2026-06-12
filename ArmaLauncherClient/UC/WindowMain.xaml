@@ -1,0 +1,1213 @@
+<Window x:Class="ArmaLauncherClient.WindowMain"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:ArmaLauncherClient.ViewModels"
+        xmlns:conv="clr-namespace:ArmaLauncherClient.Converters"
+        xmlns:loc="clr-namespace:ArmaLauncherClient.Services"
+        mc:Ignorable="d"
+        Title="Arma Reforger Launcher"
+        Height="720"
+        Width="1250"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        d:DataContext="{d:DesignInstance Type=vm:MainViewModel}">
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+        <conv:StringToVisibilityConverter x:Key="StringToVisibilityConverter"/>
+        <conv:InverseBoolConverter x:Key="InverseBoolConverter"/>
+        <conv:IntToBoolConverter x:Key="IntToBoolConverter"/>
+
+        <Style x:Key="IconButtonStyle" TargetType="Button">
+            <Setter Property="Width" Value="38"/>
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="Margin" Value="4,0,0,0"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#cbd5f5"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="6">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#1f2a44"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#2c3a60"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
+        <Style x:Key="NavButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#7b849b"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="Width" Value="44"/>
+            <Setter Property="Height" Value="44"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="ToolTipService.InitialShowDelay" Value="200"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="10">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
+        <Style x:Key="PrimaryButton" TargetType="Button">
+            <Setter Property="Background" Value="#6366f1"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="Padding" Value="22,12"/>
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="10" Padding="{TemplateBinding Padding}" Margin="0,0,0,0">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#7d81ff"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Background" Value="#6269AB"/>
+                                <Setter Property="Foreground" Value="#9ca3af"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
+        <Style x:Key="SecondaryButton" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
+            <Setter Property="Background" Value="#6269AB"/>
+            <Setter Property="Foreground" Value="#d1d5f9"/>
+        </Style>
+        
+        <Style x:Key="SmallButton" TargetType="Button" BasedOn="{StaticResource SecondaryButton}">
+            <Setter Property="Padding" Value="14,8"/>
+            <Setter Property="FontSize" Value="13"/>
+        </Style>
+        
+        <Style x:Key="DangerButton" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
+            <Setter Property="Background" Value="#dc2626"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Border Background="{Binding Theme.BackgroundMainBrush}" CornerRadius="24" SnapsToDevicePixels="True" Padding="0">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="30" ShadowDepth="0" Opacity="0.35" Color="#000000"/>
+            </Border.Effect>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                
+                <!-- Title Bar -->
+                <Grid Grid.Row="0" Height="56" Background="{Binding Theme.BackgroundPanelBrush}" MouseLeftButtonDown="TitleBar_MouseDown">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Orientation="Horizontal" Margin="20,0" VerticalAlignment="Center">
+                        <Image Source="/Images/OnlyLogoAU.png" Stretch="UniformToFill" Width="50" Height="50" Margin="-10,5,10,0"/>
+                        <!--<TextBlock Text="⚔" FontSize="22" Foreground="#6366f1" Margin="0,0,10,0"/>-->
+                        <TextBlock Text="Arma Reforger" FontSize="20" FontWeight="SemiBold" Foreground="White" Margin="0,12,0,0"/>
+                        <TextBlock Text="•" Margin="10,17,5,0" Foreground="#6b7280" FontSize="14" />
+                        <TextBlock Text="{Binding StatusMessage}" Foreground="#9ca3af" Margin="0,17,10,0" FontSize="14"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,14,0">
+                        <Button Style="{StaticResource IconButtonStyle}" Content="—" Click="MinimizeButton_Click"/>
+                        <Button Style="{StaticResource IconButtonStyle}" Content="✕" Click="CloseButton_Click"/>
+                    </StackPanel>
+                </Grid>
+                
+                <!-- Main Body -->
+                <Grid Grid.Row="1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="60"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Navigation - Compact Icons -->
+                    <Border Background="{Binding Theme.BackgroundPanelBrush}" Grid.Column="0">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <!-- Main Navigation -->
+                            <StackPanel Grid.Row="0" Margin="8,16" HorizontalAlignment="Center">
+                                <Button Content="🎮" Tag="{x:Static vm:LauncherSection.Game}" Click="NavigationButton_Click" ToolTip="{loc:Loc nav_game}">
+                                    <Button.Style>
+                                        <Style TargetType="Button" BasedOn="{StaticResource NavButtonStyle}">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsGameSection}" Value="True">
+                                                    <Setter Property="Background" Value="#1f2a44"/>
+                                                    <Setter Property="Foreground" Value="White"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                </Button>
+                                <Button Content="📰" Tag="{x:Static vm:LauncherSection.News}" Click="NavigationButton_Click" ToolTip="{loc:Loc nav_news}" Margin="0,8,0,0">
+                                    <Button.Style>
+                                        <Style TargetType="Button" BasedOn="{StaticResource NavButtonStyle}">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsNewsSection}" Value="True">
+                                                    <Setter Property="Background" Value="#1f2a44"/>
+                                                    <Setter Property="Foreground" Value="White"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                </Button>
+                                <Button Content="📦" Tag="{x:Static vm:LauncherSection.Mods}" Click="NavigationButton_Click" ToolTip="{loc:Loc nav_mods}" Margin="0,8,0,0">
+                                    <Button.Style>
+                                        <Style TargetType="Button" BasedOn="{StaticResource NavButtonStyle}">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsModsSection}" Value="True">
+                                                    <Setter Property="Background" Value="#1f2a44"/>
+                                                    <Setter Property="Foreground" Value="White"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                </Button>
+                                <Button Content="🖥" Tag="{x:Static vm:LauncherSection.Servers}" Click="NavigationButton_Click" ToolTip="{loc:Loc nav_servers}" Margin="0,8,0,0">
+                                    <Button.Style>
+                                        <Style TargetType="Button" BasedOn="{StaticResource NavButtonStyle}">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsServersSection}" Value="True">
+                                                    <Setter Property="Background" Value="#1f2a44"/>
+                                                    <Setter Property="Foreground" Value="White"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                </Button>
+                                <Button Content="⚙" Tag="{x:Static vm:LauncherSection.Settings}" Click="NavigationButton_Click" ToolTip="{loc:Loc nav_settings}" Margin="0,8,0,0">
+                                    <Button.Style>
+                                        <Style TargetType="Button" BasedOn="{StaticResource NavButtonStyle}">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsSettingsSection}" Value="True">
+                                                    <Setter Property="Background" Value="#1f2a44"/>
+                                                    <Setter Property="Foreground" Value="White"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                </Button>
+                            </StackPanel>
+
+                            <!-- Bottom Info Button -->
+                            <StackPanel Grid.Row="1" Margin="8,0,8,16" HorizontalAlignment="Center">
+                                <Button Content="ℹ️" Click="AboutButton_Click" ToolTip="{loc:Loc nav_about}">
+                                    <Button.Style>
+                                        <Style TargetType="Button" BasedOn="{StaticResource NavButtonStyle}">
+                                            <Style.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter Property="Background" Value="#1f2a44"/>
+                                                    <Setter Property="Foreground" Value="White"/>
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                </Button>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- Content Sections -->
+                    <Grid Grid.Column="1">
+                        <!-- Layer 1: Background Image (slideshow) -->
+                        <Image Source="{Binding CurrentBackgroundImage}" Stretch="UniformToFill" Opacity="0.4"/>
+
+                        <!-- Layer 2: Character/Art overlay -->
+                        <Image Source="{Binding CharacterImagePath}" Stretch="Uniform" 
+                               HorizontalAlignment="Center" 
+                               VerticalAlignment="Center"
+                               Opacity="{Binding CharacterOpacity}" 
+                               MaxHeight="{Binding CharacterMaxHeight}"
+                               Margin="{Binding CharacterMargin}"
+                               Visibility="{Binding CharacterOverlayEnabled, Converter={StaticResource BoolToVis}}"/>
+
+                        <!-- Layer 3: Gradient overlay for text readability -->
+                        <Border>
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                    <GradientStop Color="#CC0e1425" Offset="0"/>
+                                    <GradientStop Color="#990e1425" Offset="0.3"/>
+                                    <GradientStop Color="#660e1425" Offset="0.7"/>
+                                    <GradientStop Color="#CC0e1425" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
+                        </Border>
+
+                        <ScrollViewer Padding="28" VerticalScrollBarVisibility="Auto">
+                            <Grid>
+                                <!-- Game Section - без списка модов -->
+                                <Grid Visibility="{Binding IsGameSection, Converter={StaticResource BoolToVis}}">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="*"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <!-- Кнопка перехода на сайт - вверху справа -->
+                                    <Border Grid.Row="0" Background="#CC111830" CornerRadius="16" Padding="20,14" 
+                                           HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,0,0"
+                                            Cursor="Hand" MouseLeftButtonUp="OpenWebsite_Click">
+                                        <Border.Effect>
+                                            <DropShadowEffect BlurRadius="20" ShadowDepth="3" Opacity="0.4" Color="#000000"/>
+                                        </Border.Effect>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Image Source="/Images/logo_zos2.png" Stretch="UniformToFill" Width="45" Height="45" Margin="0,2,10,0"/>
+                                            <StackPanel VerticalAlignment="Center">
+                                                <TextBlock Text="ZoS Strike Arena" Foreground="White" FontSize="16" FontWeight="SemiBold"/>
+                                                <TextBlock Text="{loc:Loc go_to_site}" Foreground="#9ca3af" FontSize="12" Margin="0,2,0,0"/>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Центральная карточка игры - внизу по центру -->
+                                    <StackPanel Grid.Row="1" HorizontalAlignment="Center" Margin="0,0,0,40">
+                                        <TextBlock Text="{Binding GameStatusText}" Foreground="#d1d5f9" FontSize="16" HorizontalAlignment="Center" Margin="0,0,0,0"/>
+
+                                        <!-- Кнопки действий -->
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,24,0,0">
+                                            <Button Style="{StaticResource PrimaryButton}" Click="GamePrimaryButton_Click" IsEnabled="{Binding CanExecuteGameAction}" Padding="40,16" FontSize="18">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="▶" Margin="0,0,10,0" FontSize="16"/>
+                                                    <TextBlock Text="{Binding GamePrimaryActionLabel}"/>
+                                                </StackPanel>
+                                            </Button>
+                                            <Button Content="{loc:Loc btn_verify}" Style="{StaticResource SecondaryButton}" Margin="16,0,0,0" Click="VerifyMainButton_Click" IsEnabled="{Binding HasMainModel}" Padding="24,16"/>
+                                            <Button Content="↻" Style="{StaticResource SecondaryButton}" Margin="16,0,0,0" Click="RefreshButton_Click" Padding="16,16" ToolTip="{loc:Loc btn_refresh_catalog}"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Grid>
+                                
+                                <!-- News Section -->
+                                <StackPanel Visibility="{Binding IsNewsSection, Converter={StaticResource BoolToVis}}">
+                                    <Border Background="#AA111830" CornerRadius="18" Padding="24">
+                                        <StackPanel>
+                                            <Grid Margin="0,0,0,20">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Text="{loc:Loc news_title}" FontSize="24" FontWeight="SemiBold" Foreground="White"/>
+                                                <Button Content="{loc:Loc btn_refresh}" Style="{StaticResource SmallButton}" Grid.Column="1" Click="RefreshNews_Click"/>
+                                            </Grid>
+                                            
+                                            <!-- Список новостей -->
+                                            <ItemsControl ItemsSource="{Binding News}">
+                                                <ItemsControl.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <UniformGrid Columns="2" />
+                                                    </ItemsPanelTemplate>
+                                                </ItemsControl.ItemsPanel>
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border Background="#CC151d33" CornerRadius="12" Margin="0,0,14,14" Cursor="Hand" 
+                                                                MouseLeftButtonUp="NewsItem_Click" Tag="{Binding Url}">
+                                                            <Grid>
+                                                                <!-- Картинка -->
+                                                                <Image Source="{Binding ImageUrl}" Stretch="UniformToFill" Height="180"
+                                                                       VerticalAlignment="Top" Opacity="0.6">
+                                                                    <Image.Clip>
+                                                                        <RectangleGeometry Rect="0,0,1000,180" RadiusX="12" RadiusY="12"/>
+                                                                    </Image.Clip>
+                                                                </Image>
+                                                                
+                                                                <!-- Градиент поверх картинки -->
+                                                                <Border Height="180" VerticalAlignment="Top" CornerRadius="12,12,0,0">
+                                                                    <Border.Background>
+                                                                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                                                            <GradientStop Color="#00000000" Offset="0"/>
+                                                                            <GradientStop Color="#CC0e1425" Offset="1"/>
+                                                                        </LinearGradientBrush>
+                                                                    </Border.Background>
+                                                                </Border>
+                                                                
+                                                                <!-- Контент -->
+                                                                <StackPanel VerticalAlignment="Bottom" Margin="16">
+                                                                    <!-- Лейбл -->
+                                                                    <Border Background="#10b981" CornerRadius="4" Padding="8,4" HorizontalAlignment="Left" Margin="0,0,0,8"
+                                                                            Visibility="{Binding Label, Converter={StaticResource StringToVisibilityConverter}}">
+                                                                        <TextBlock Text="{Binding Label}" Foreground="White" FontSize="11" FontWeight="SemiBold"/>
+                                                                    </Border>
+                                                                    
+                                                                    <!-- Заголовок -->
+                                                                    <TextBlock Text="{Binding Title}" Foreground="White" FontSize="16" FontWeight="SemiBold" 
+                                                                               TextWrapping="Wrap" MaxHeight="48" TextTrimming="CharacterEllipsis"/>
+                                                                    
+                                                                    <!-- Описание -->
+                                                                    <TextBlock Text="{Binding Description}" Foreground="#9ca3af" FontSize="12" 
+                                                                               TextWrapping="Wrap" MaxHeight="36" TextTrimming="CharacterEllipsis" Margin="0,6,0,0"/>
+                                                                </StackPanel>
+                                                            </Grid>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                            
+                                            <!-- Пустое состояние -->
+                                            <Border Padding="40" Visibility="{Binding News.Count, Converter={StaticResource BoolToVis}, ConverterParameter=inverse}">
+                                                <StackPanel HorizontalAlignment="Center">
+                                                    <TextBlock Text="📰" FontSize="48" HorizontalAlignment="Center" Opacity="0.5"/>
+                                                    <TextBlock Text="{loc:Loc news_loading}" Foreground="#6b7280" FontSize="16" HorizontalAlignment="Center" Margin="0,12,0,0"/>
+                                                </StackPanel>
+                                            </Border>
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+                                
+                                <!-- Mods Section -->
+                                <StackPanel Visibility="{Binding IsModsSection, Converter={StaticResource BoolToVis}}">
+                                    <!-- Server Filter Toggle Button -->
+                                    <Border Background="#AA111830" CornerRadius="18" Padding="18,14" Margin="0,0,0,10">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <!-- Toggle Button with arrow icon -->
+                                            <Button Grid.Column="0" Click="ToggleServerFilter_Click" 
+                                                    Background="Transparent" BorderBrush="Transparent" Cursor="Hand"
+                                                    HorizontalContentAlignment="Left" Padding="0">
+                                                <Button.Template>
+                                                    <ControlTemplate TargetType="Button">
+                                                        <Border Background="{TemplateBinding Background}" Padding="6,6" CornerRadius="8">
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <!-- Arrow icon in square -->
+                                                                <Border Background="#1f2a44" CornerRadius="6" Width="28" Height="28" Margin="0,0,10,0">
+                                                                    <TextBlock Text="{Binding ServerFilterToggleIcon}" 
+                                                                               FontFamily="Segoe UI Symbol" FontSize="14" FontWeight="Bold" Foreground="#9ca3af"
+                                                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Border>
+                                                                <TextBlock Text="{Binding [mods_server_filter], Source={x:Static loc:LocalizationManager.Instance}, Mode=OneWay}" FontSize="14" FontWeight="SemiBold" 
+                                                                           Foreground="White" VerticalAlignment="Center"/>
+                                                            </StackPanel>
+                                                        </Border>
+                                                        <ControlTemplate.Triggers>
+                                                            <Trigger Property="IsMouseOver" Value="True">
+                                                                <Setter Property="Background" Value="#1f2a44"/>
+                                                            </Trigger>
+                                                        </ControlTemplate.Triggers>
+                                                    </ControlTemplate>
+                                                </Button.Template>
+                                            </Button>
+
+                                            <!-- Server name badge when server selected -->
+                                            <Border Grid.Column="1" Background="#1f2a44" CornerRadius="8" Padding="12,6" Margin="12,0,0,0"
+                                                    HorizontalAlignment="Left" VerticalAlignment="Center"
+                                                    Visibility="{Binding HasSelectedModsServer, Converter={StaticResource BoolToVis}}">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="🖥" FontSize="12" Margin="0,0,6,0"/>
+                                                    <TextBlock Text="{Binding SelectedModsServer.Name, Mode=OneWay}" Foreground="#9ca3af" FontSize="12" 
+                                                               MaxWidth="300" TextTrimming="CharacterEllipsis"/>
+                                                    <TextBlock Text=" • " Foreground="#4b5563"/>
+                                                    <TextBlock Text="{Binding ServerModsStatusText}" FontSize="12">
+                                                        <TextBlock.Style>
+                                                            <Style TargetType="TextBlock">
+                                                                <Setter Property="Foreground" Value="#22c55e"/>
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding ServerModsMissingCount}" Value="0">
+                                                                        <Setter Property="Foreground" Value="#22c55e"/>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </TextBlock.Style>
+                                                    </TextBlock>
+                                                </StackPanel>
+                                            </Border>
+
+                                            <!-- Clear button -->
+                                            <Button Grid.Column="2" Content="✕" Style="{StaticResource SmallButton}" 
+                                                    Click="ClearModsServerFilter_Click" VerticalAlignment="Center" Padding="10,6"
+                                                    ToolTip="{loc:Loc mods_clear_filter}"
+                                                    Visibility="{Binding HasSelectedModsServer, Converter={StaticResource BoolToVis}}"/>
+                                        </Grid>
+                                    </Border>
+
+                                    <!-- Expanded Server Filter Content -->
+                                    <Border Background="#AA111830" CornerRadius="18" Padding="24" Margin="0,0,0,16"
+                                            Visibility="{Binding IsServerFilterExpanded, Converter={StaticResource BoolToVis}}">
+                                        <StackPanel>
+                                            <TextBlock Text="{loc:Loc mods_select_server}" Foreground="#6b7280" FontSize="12" Margin="0,0,0,12"/>
+
+                                            <ComboBox ItemsSource="{Binding ServersForModsFilter}" 
+                                                      SelectedItem="{Binding SelectedModsServer}" 
+                                                      Background="#1f2a44" Foreground="Black" 
+                                                      BorderBrush="Transparent" Padding="12,10" FontSize="14">
+                                                <ComboBox.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
+                                                            <TextBlock Text=" • " Foreground="#6b7280" VerticalAlignment="Center"/>
+                                                            <TextBlock Text="{Binding ModsCount}" Foreground="#6366f1" VerticalAlignment="Center"/>
+                                                        </StackPanel>
+                                                    </DataTemplate>
+                                                </ComboBox.ItemTemplate>
+                                            </ComboBox>
+
+                                            <!-- Server Mods Status Summary -->
+                                            <Border Visibility="{Binding HasSelectedModsServer, Converter={StaticResource BoolToVis}}" 
+                                                    Background="#161f35" CornerRadius="10" Padding="16,12" Margin="0,16,0,0">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <StackPanel Grid.Column="0" HorizontalAlignment="Center">
+                                                        <TextBlock Text="{Binding ServerModsInstalledCount}" FontSize="24" FontWeight="Bold" Foreground="#22c55e" HorizontalAlignment="Center"/>
+                                                        <TextBlock Text="{loc:Loc mods_installed}" FontSize="11" Foreground="#9ca3af" HorizontalAlignment="Center"/>
+                                                    </StackPanel>
+
+                                                    <StackPanel Grid.Column="1" HorizontalAlignment="Center">
+                                                        <TextBlock Text="{Binding ServerModsMissingCount}" FontSize="24" FontWeight="Bold" Foreground="#ef4444" HorizontalAlignment="Center"/>
+                                                        <TextBlock Text="{loc:Loc mods_missing}" FontSize="11" Foreground="#9ca3af" HorizontalAlignment="Center"/>
+                                                    </StackPanel>
+
+                                                    <StackPanel Grid.Column="2" HorizontalAlignment="Center">
+                                                        <TextBlock Text="{Binding ServerModsMismatchCount}" FontSize="24" FontWeight="Bold" Foreground="#f59e0b" HorizontalAlignment="Center"/>
+                                                        <TextBlock Text="{loc:Loc mods_version_ne}" FontSize="11" Foreground="#9ca3af" HorizontalAlignment="Center"/>
+                                                    </StackPanel>
+
+                                                    <Button Grid.Column="3" Content="{loc:Loc btn_download_missing}" 
+                                                            Style="{StaticResource PrimaryButton}" Padding="14,10"
+                                                            Click="InstallMissingServerMods_Click"
+                                                            IsEnabled="{Binding IsDownloading, Converter={StaticResource InverseBoolConverter}}"
+                                                            Visibility="{Binding HasDownloadableServerMods, Converter={StaticResource BoolToVis}}"/>
+                                                </Grid>
+                                            </Border>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Server Mods List (when server selected and expanded) -->
+                                    <Border Background="#AA111830" CornerRadius="18" Padding="20" Margin="0,0,0,10"
+                                            Visibility="{Binding ShowServerModsList, Converter={StaticResource BoolToVis}}">
+                                        <StackPanel>
+                                            <!-- Header with buttons -->
+                                            <Grid Margin="0,0,0,12">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+
+                                                <TextBlock FontSize="16" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center">
+                                                    <Run Text="📋 "/>
+                                                    <Run Text="{Binding SelectedModsServer.Name, Mode=OneWay}" Foreground="#6366f1"/>
+                                                    <Run Text=" • " Foreground="#4b5563"/>
+                                                    <Run Text="{Binding SelectedModsServer.Mods.Count, Mode=OneWay}" Foreground="#9ca3af"/>
+                                                    <Run Text="{Binding [mods_suffix], Source={x:Static loc:LocalizationManager.Instance}, Mode=OneWay}" Foreground="#9ca3af"/>
+                                                </TextBlock>
+
+                                                <!-- Buttons -->
+                                                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                                    <!-- Verify all button -->
+                                                    <Button Content="{loc:Loc btn_verify_all}" 
+                                                            Click="VerifyAllServerMods_Click"
+                                                            IsEnabled="{Binding IsDownloading, Converter={StaticResource InverseBoolConverter}}"
+                                                            Background="#6366f1" Foreground="White" BorderBrush="Transparent" 
+                                                            Padding="12,6" FontSize="12" Cursor="Hand" ToolTip="{loc:Loc btn_verify_all_tooltip}">
+                                                        <Button.Template>
+                                                            <ControlTemplate TargetType="Button">
+                                                                <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Border>
+                                                                <ControlTemplate.Triggers>
+                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                        <Setter Property="Background" Value="#4f46e5"/>
+                                                                    </Trigger>
+                                                                    <Trigger Property="IsEnabled" Value="False">
+                                                                        <Setter Property="Background" Value="#2a2f4f"/>
+                                                                        <Setter Property="Foreground" Value="#6b7280"/>
+                                                                    </Trigger>
+                                                                </ControlTemplate.Triggers>
+                                                            </ControlTemplate>
+                                                        </Button.Template>
+                                                    </Button>
+
+                                                    <!-- Download all button -->
+                                                    <Button Content="{loc:Loc btn_download_missing}" Margin="8,0,0,0"
+                                                            Click="InstallMissingServerMods_Click"
+                                                            Visibility="{Binding HasDownloadableServerMods, Converter={StaticResource BoolToVis}}"
+                                                            IsEnabled="{Binding IsDownloading, Converter={StaticResource InverseBoolConverter}}"
+                                                            Background="#3b82f6" Foreground="White" BorderBrush="Transparent" 
+                                                            Padding="12,6" FontSize="12" Cursor="Hand">
+                                                        <Button.Template>
+                                                            <ControlTemplate TargetType="Button">
+                                                                <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Border>
+                                                                <ControlTemplate.Triggers>
+                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                        <Setter Property="Background" Value="#2563eb"/>
+                                                                    </Trigger>
+                                                                    <Trigger Property="IsEnabled" Value="False">
+                                                                        <Setter Property="Background" Value="#1e3a5f"/>
+                                                                        <Setter Property="Foreground" Value="#6b7280"/>
+                                                                    </Trigger>
+                                                                </ControlTemplate.Triggers>
+                                                            </ControlTemplate>
+                                                        </Button.Template>
+                                                    </Button>
+                                                </StackPanel>
+                                            </Grid>
+
+                                            <!-- Size stats -->
+                                            <Border Background="#161f35" CornerRadius="8" Padding="12,8" Margin="0,0,0,12">
+                                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                                    <TextBlock Foreground="#9ca3af" FontSize="11">
+                                                        <Run Text="{Binding [stats_total], Source={x:Static loc:LocalizationManager.Instance}, Mode=OneWay}"/><Run Text="{Binding ServerModsTotalSize, Mode=OneWay}" Foreground="White" FontWeight="SemiBold"/>
+                                                    </TextBlock>
+                                                    <TextBlock Text=" │ " Foreground="#4b5563"/>
+                                                    <TextBlock Foreground="#9ca3af" FontSize="11">
+                                                        <Run Text="{Binding [stats_downloaded], Source={x:Static loc:LocalizationManager.Instance}, Mode=OneWay}"/><Run Text="{Binding ServerModsDownloadedSize, Mode=OneWay}" Foreground="#22c55e" FontWeight="SemiBold"/>
+                                                    </TextBlock>
+                                                    <TextBlock Text=" │ " Foreground="#4b5563"/>
+                                                    <TextBlock Foreground="#9ca3af" FontSize="11">
+                                                        <Run Text="{Binding [stats_needed], Source={x:Static loc:LocalizationManager.Instance}, Mode=OneWay}"/><Run Text="{Binding ServerModsToDownloadSize, Mode=OneWay}" Foreground="#f59e0b" FontWeight="SemiBold"/>
+                                                    </TextBlock>
+                                                </StackPanel>
+                                            </Border>
+
+                                            <ItemsControl ItemsSource="{Binding ServerModsStatus}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border CornerRadius="10" Padding="14,12" Margin="0,0,0,8">
+                                                            <Border.Style>
+                                                                <Style TargetType="Border">
+                                                                    <Setter Property="Background" Value="#1a2744"/>
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding Status}" Value="Missing">
+                                                                            <Setter Property="Background" Value="#2a1a1a"/>
+                                                                        </DataTrigger>
+                                                                        <DataTrigger Binding="{Binding Status}" Value="MissingCanDownload">
+                                                                            <Setter Property="Background" Value="#1a1a2a"/>
+                                                                        </DataTrigger>
+                                                                        <DataTrigger Binding="{Binding Status}" Value="VersionOlder">
+                                                                            <Setter Property="Background" Value="#2a2a1a"/>
+                                                                        </DataTrigger>
+                                                                        <DataTrigger Binding="{Binding Status}" Value="VersionNewer">
+                                                                            <Setter Property="Background" Value="#1a2a1a"/>
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </Border.Style>
+
+                                                            <Grid>
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                    <ColumnDefinition Width="*"/>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                </Grid.ColumnDefinitions>
+
+                                                                <!-- Status Icon -->
+                                                                <Border Grid.Column="0" Width="36" Height="36" CornerRadius="8" VerticalAlignment="Top" Margin="0,0,12,0">
+                                                                    <Border.Style>
+                                                                        <Style TargetType="Border">
+                                                                            <Setter Property="Background" Value="#22c55e"/>
+                                                                            <Style.Triggers>
+                                                                                <DataTrigger Binding="{Binding Status}" Value="Missing">
+                                                                                    <Setter Property="Background" Value="#ef4444"/>
+                                                                                </DataTrigger>
+                                                                                <DataTrigger Binding="{Binding Status}" Value="MissingCanDownload">
+                                                                                    <Setter Property="Background" Value="#3b82f6"/>
+                                                                                </DataTrigger>
+                                                                                <DataTrigger Binding="{Binding Status}" Value="VersionOlder">
+                                                                                    <Setter Property="Background" Value="#f59e0b"/>
+                                                                                </DataTrigger>
+                                                                                <DataTrigger Binding="{Binding Status}" Value="VersionNewer">
+                                                                                    <Setter Property="Background" Value="#22c55e"/>
+                                                                                </DataTrigger>
+                                                                            </Style.Triggers>
+                                                                        </Style>
+                                                                    </Border.Style>
+                                                                    <TextBlock Text="{Binding StatusIcon}" HorizontalAlignment="Center" VerticalAlignment="Center" 
+                                                                               FontSize="16" Foreground="White"/>
+                                                                </Border>
+
+                                                                <!-- Mod Info -->
+                                                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                                    <!-- Name -->
+                                                                    <TextBlock Text="{Binding Name}" Foreground="White" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+
+                                                                    <!-- Версии для установленных: У вас → Нужно -->
+                                                                    <StackPanel Orientation="Horizontal" Margin="0,6,0,0" Visibility="{Binding IsInstalled, Converter={StaticResource BoolToVis}}">
+                                                                        <Border CornerRadius="4" Padding="6,2">
+                                                                            <Border.Style>
+                                                                                <Style TargetType="Border">
+                                                                                    <Setter Property="Background" Value="#22c55e"/>
+                                                                                    <Style.Triggers>
+                                                                                        <DataTrigger Binding="{Binding Status}" Value="VersionOlder">
+                                                                                            <Setter Property="Background" Value="#ef4444"/>
+                                                                                        </DataTrigger>
+                                                                                        <DataTrigger Binding="{Binding Status}" Value="VersionNewer">
+                                                                                            <Setter Property="Background" Value="#f59e0b"/>
+                                                                                        </DataTrigger>
+                                                                                    </Style.Triggers>
+                                                                                </Style>
+                                                                            </Border.Style>
+                                                                            <TextBlock FontSize="10" Foreground="White" FontWeight="Medium">
+                                                                                <Run Text="{Binding [mods_your_version], Source={x:Static loc:LocalizationManager.Instance}, Mode=OneWay}"/><Run Text="{Binding LocalVersion}"/>
+                                                                            </TextBlock>
+                                                                        </Border>
+                                                                        <TextBlock Text="→" Foreground="#6b7280" FontSize="12" Margin="6,0" VerticalAlignment="Center" FontWeight="Bold"/>
+                                                                        <Border Background="#6366f1" CornerRadius="4" Padding="6,2">
+                                                                            <TextBlock FontSize="10" Foreground="White" FontWeight="Medium">
+                                                                                <Run Text="{Binding [mods_required_version], Source={x:Static loc:LocalizationManager.Instance}, Mode=OneWay}"/><Run Text="{Binding ServerVersion}"/>
+                                                                            </TextBlock>
+                                                                        </Border>
+                                                                    </StackPanel>
+
+                                                                    <!-- Версия для неустановленных -->
+                                                                    <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                                                        <StackPanel.Style>
+                                                                            <Style TargetType="StackPanel">
+                                                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                                                <Style.Triggers>
+                                                                                    <DataTrigger Binding="{Binding IsInstalled}" Value="False">
+                                                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                                                    </DataTrigger>
+                                                                                </Style.Triggers>
+                                                                            </Style>
+                                                                        </StackPanel.Style>
+                                                                        <Border Background="#6366f1" CornerRadius="4" Padding="6,2">
+                                                                            <TextBlock FontSize="10" Foreground="White" FontWeight="Medium">
+                                                                                <Run Text="{Binding [mods_requires_version], Source={x:Static loc:LocalizationManager.Instance}, Mode=OneWay}"/><Run Text="{Binding ServerVersion}"/>
+                                                                            </TextBlock>
+                                                                        </Border>
+                                                                    </StackPanel>
+                                                                </StackPanel>
+
+                                                                <!-- Action button -->
+                                                                <Button Grid.Column="2" Content="📥" 
+                                                                        Width="36" Height="36" Background="#3b82f6" 
+                                                                        BorderBrush="Transparent" Cursor="Hand"
+                                                                        Click="InstallServerMod_Click" Tag="{Binding}"
+                                                                        Visibility="{Binding CanDownload, Converter={StaticResource BoolToVis}}"
+                                                                        IsEnabled="{Binding DataContext.IsDownloading, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource InverseBoolConverter}}"
+                                                                        ToolTip="{loc:Loc mods_download_tooltip}">
+                                                                    <Button.Template>
+                                                                        <ControlTemplate TargetType="Button">
+                                                                            <Border Background="{TemplateBinding Background}" CornerRadius="8">
+                                                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                            </Border>
+                                                                            <ControlTemplate.Triggers>
+                                                                                <Trigger Property="IsMouseOver" Value="True">
+                                                                                    <Setter Property="Background" Value="#2563eb"/>
+                                                                                </Trigger>
+                                                                            </ControlTemplate.Triggers>
+                                                                        </ControlTemplate>
+                                                                    </Button.Template>
+                                                                </Button>
+                                                            </Grid>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Full Mods Catalog (hidden when filter is expanded) -->
+                                    <Border Background="#AA111830" CornerRadius="18" Padding="24"
+                                            Visibility="{Binding ShowFullModsCatalog, Converter={StaticResource BoolToVis}}">
+                                        <StackPanel>
+                                            <!-- Заголовок с кнопками -->
+                                            <Grid Margin="0,0,0,20">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="{loc:Loc mods_catalog_title}" FontSize="24" FontWeight="SemiBold" Foreground="White"/>
+                                                    <TextBlock Text="{Binding Models.Count, StringFormat=' ({0})'}" FontSize="16" Foreground="#6b7280" VerticalAlignment="Bottom" Margin="4,0,0,6"/>
+                                                </StackPanel>
+                                                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                                    <Button Content="{loc:Loc btn_install_all}" Style="{StaticResource PrimaryButton}" Padding="14,8" Click="InstallAllAddons_Click" 
+                                                            IsEnabled="{Binding IsDownloading, Converter={StaticResource InverseBoolConverter}}"
+                                                            ToolTip="{loc:Loc btn_install_all_tooltip}"/>
+                                                    <Button Content="{loc:Loc btn_verify_all_integrity}" Style="{StaticResource SecondaryButton}" Padding="14,8" Margin="10,0,0,0" Click="VerifyAllAddons_Click"
+                                                            IsEnabled="{Binding IsDownloading, Converter={StaticResource InverseBoolConverter}}"
+                                                            ToolTip="{loc:Loc btn_verify_all_tooltip2}"/>
+                                                    <Button Content="↻" Style="{StaticResource SmallButton}" Margin="10,0,0,0" Click="RefreshButton_Click" ToolTip="{loc:Loc btn_refresh_list}"/>
+                                                </StackPanel>
+                                            </Grid>
+
+                                            <!-- Size stats for catalog -->
+                                            <Border Background="#02232A" CornerRadius="8" Padding="12,8" Margin="0,0,0,16">
+                                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                                    <TextBlock Foreground="#9ca3af" FontSize="11">
+                                                        <Run Text="{Binding [stats_total], Source={x:Static loc:LocalizationManager.Instance}, Mode=OneWay}"/><Run Text="{Binding CatalogTotalSize, Mode=OneWay}" Foreground="White" FontWeight="SemiBold"/>
+                                                    </TextBlock>
+                                                    <TextBlock Text=" │ " Foreground="#4b5563"/>
+                                                    <TextBlock Foreground="#9ca3af" FontSize="11">
+                                                        <Run Text="{Binding [stats_downloaded], Source={x:Static loc:LocalizationManager.Instance}, Mode=OneWay}"/><Run Text="{Binding CatalogDownloadedSize, Mode=OneWay}" Foreground="#22c55e" FontWeight="SemiBold"/>
+                                                    </TextBlock>
+                                                    <TextBlock Text=" │ " Foreground="#4b5563"/>
+                                                    <TextBlock Foreground="#9ca3af" FontSize="11">
+                                                        <Run Text="{Binding [stats_needed], Source={x:Static loc:LocalizationManager.Instance}, Mode=OneWay}"/><Run Text="{Binding CatalogToDownloadSize, Mode=OneWay}" Foreground="#f59e0b" FontWeight="SemiBold"/>
+                                                    </TextBlock>
+                                                </StackPanel>
+                                            </Border>
+
+                                            <ItemsControl ItemsSource="{Binding Models}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border Background="#CC151d33" CornerRadius="12" Padding="18" Margin="0,0,0,14">
+                                                            <Grid>
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="*"/>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                </Grid.ColumnDefinitions>
+                                                                <StackPanel>
+                                                                    <TextBlock Text="{Binding DisplayName}" Foreground="White" FontSize="18" FontWeight="SemiBold"/>
+                                                                    <TextBlock Text="{Binding StatusText}" Foreground="#9ca3af" FontSize="13" Margin="0,4,0,0"/>
+                                                                    <TextBlock Text="{Binding SizeFormatted}" Foreground="#6b7280" FontSize="12" Margin="0,4,0,0"/>
+                                                                </StackPanel>
+                                                                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                                                    <Button Content="{loc:Loc btn_download}" Style="{StaticResource PrimaryButton}" Padding="16,10" Click="InstallButton_Click" Tag="{Binding}"/>
+                                                                    <Button Content="✓" Style="{StaticResource SecondaryButton}" Padding="12,10" Margin="10,0,0,0" Tag="{Binding}" Click="VerifyButton_Click" ToolTip="{loc:Loc btn_verify_short}"/>
+                                                                </StackPanel>
+                                                            </Grid>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+
+                                            <!-- Пустое состояние -->
+                                            <Border Visibility="{Binding Models.Count, Converter={StaticResource BoolToVis}, ConverterParameter=inverse}" Padding="40">
+                                                <StackPanel HorizontalAlignment="Center">
+                                                    <TextBlock Text="📦" FontSize="48" HorizontalAlignment="Center" Opacity="0.5"/>
+                                                    <TextBlock Text="{loc:Loc mods_empty}" Foreground="#6b7280" FontSize="16" HorizontalAlignment="Center" Margin="0,12,0,0"/>
+                                                    <Button Content="{loc:Loc mods_refresh_catalog}" Style="{StaticResource SecondaryButton}" Margin="0,16,0,0" Click="RefreshButton_Click"/>
+                                                </StackPanel>
+                                            </Border>
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+                                
+                                <!-- Servers Section -->
+                                <StackPanel Visibility="{Binding IsServersSection, Converter={StaticResource BoolToVis}}">
+                                    <Border Background="#AA111830" CornerRadius="18" Padding="24">
+                                        <StackPanel>
+                                            <Grid Margin="0,0,0,20">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Text="{loc:Loc servers_title}" FontSize="24" FontWeight="SemiBold" Foreground="White"/>
+                                                <Button Content="{loc:Loc btn_refresh}" Style="{StaticResource SmallButton}" Grid.Column="1" Click="RefreshServers_Click"/>
+                                            </Grid>
+                                            
+                                            <!-- Заголовок таблицы -->
+                                            <Border Background="#1a2744" CornerRadius="8" Padding="16,12" Margin="0,0,0,8">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="2.5*"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="1.5*"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="80"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Text="{loc:Loc servers_name}" Foreground="#9ca3af" FontSize="12" FontWeight="SemiBold"/>
+                                                    <TextBlock Text="{loc:Loc servers_online}" Foreground="#9ca3af" FontSize="12" FontWeight="SemiBold" Grid.Column="1"/>
+                                                    <TextBlock Text="{loc:Loc servers_scenario}" Foreground="#9ca3af" FontSize="12" FontWeight="SemiBold" Grid.Column="2"/>
+                                                    <TextBlock Text="{loc:Loc servers_version}" Foreground="#9ca3af" FontSize="12" FontWeight="SemiBold" Grid.Column="3"/>
+                                                    <TextBlock Text="{loc:Loc servers_mods}" Foreground="#9ca3af" FontSize="12" FontWeight="SemiBold" Grid.Column="4"/>
+                                                    <TextBlock Text="{loc:Loc servers_chart}" Foreground="#9ca3af" FontSize="12" FontWeight="SemiBold" Grid.Column="5" HorizontalAlignment="Center"/>
+                                                </Grid>
+                                            </Border>
+                                            
+                                            <!-- Список серверов -->
+                                            <ItemsControl ItemsSource="{Binding GameServers}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border Background="#CC151d33" CornerRadius="10" Padding="16,14" Margin="0,0,0,8">
+                                                            <Grid>
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="2.5*"/>
+                                                                    <ColumnDefinition Width="*"/>
+                                                                    <ColumnDefinition Width="1.5*"/>
+                                                                    <ColumnDefinition Width="*"/>
+                                                                    <ColumnDefinition Width="*"/>
+                                                                    <ColumnDefinition Width="80"/>
+                                                                </Grid.ColumnDefinitions>
+                                                                
+                                                                <!-- Название -->
+                                                                <TextBlock Text="{Binding Name}" Foreground="White" FontSize="13" FontWeight="SemiBold" 
+                                                                           TextTrimming="CharacterEllipsis" VerticalAlignment="Center" ToolTip="{Binding Name}"/>
+                                                                
+                                                                <!-- Онлайн - кликабельный -->
+                                                                <Border Grid.Column="1" Background="{Binding HasPlayers, Converter={StaticResource BoolToVis}, ConverterParameter=color}" 
+                                                                        CornerRadius="6" Padding="8,4" HorizontalAlignment="Left" Cursor="Hand"
+                                                                        MouseLeftButtonUp="ServerPlayers_Click" Tag="{Binding}">
+                                                                    <StackPanel Orientation="Horizontal">
+                                                                        <TextBlock Text="{Binding PlayerCount}" Foreground="#10b981" FontSize="14" Margin="0,0,0,0" FontWeight="Bold"/>
+                                                                        <TextBlock Text="/" Foreground="#6b7280" FontSize="13"/>
+                                                                        <TextBlock Text="{Binding PlayerCountLimit}" Foreground="#6b7280" FontSize="14" FontWeight="Bold"/>
+                                                                    </StackPanel>
+                                                                </Border>
+                                                                
+                                                                <!-- Сценарий -->
+                                                                <TextBlock Grid.Column="2" Text="{Binding ScenarioName}" Foreground="#9ca3af" FontSize="12" 
+                                                                           TextTrimming="CharacterEllipsis" VerticalAlignment="Center" ToolTip="{Binding ScenarioName}"/>
+                                                                
+                                                                <!-- Версия -->
+                                                                <TextBlock Grid.Column="3" Text="{Binding GameVersion}" Foreground="#6b7280" FontSize="12" VerticalAlignment="Center"/>
+                                                                
+                                                                <!-- Моды - кликабельные -->
+                                                                <Border Grid.Column="4" Background="Transparent" CornerRadius="6" Padding="8,4" 
+                                                                        HorizontalAlignment="Left" Cursor="Hand"
+                                                                        MouseLeftButtonUp="ServerMods_Click" Tag="{Binding}">
+                                                                    <Border.Style>
+                                                                        <Style TargetType="Border">
+                                                                            <Style.Triggers>
+                                                                                <Trigger Property="IsMouseOver" Value="True">
+                                                                                    <Setter Property="Background" Value="#1f2a44"/>
+                                                                                </Trigger>
+                                                                            </Style.Triggers>
+                                                                        </Style>
+                                                                    </Border.Style>
+                                                                    <TextBlock Text="{Binding ModsCount}" Foreground="#6366f1" FontSize="12" 
+                                                                               VerticalAlignment="Center" FontWeight="SemiBold"/>
+                                                                </Border>
+                                                                
+                                                                <!-- График -->
+                                                                <Border Grid.Column="5" Background="#1f2a44" CornerRadius="6" Height="28" HorizontalAlignment="Stretch"
+                                                                        Cursor="Hand" MouseLeftButtonUp="ServerStats_Click" Tag="{Binding}">
+                                                                    <Border.Style>
+                                                                        <Style TargetType="Border">
+                                                                            <Style.Triggers>
+                                                                                <Trigger Property="IsMouseOver" Value="True">
+                                                                                    <Setter Property="Background" Value="#2a3f5f"/>
+                                                                                </Trigger>
+                                                                            </Style.Triggers>
+                                                                        </Style>
+                                                                    </Border.Style>
+                                                                    <TextBlock Text="📊" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#9ca3af" FontSize="13"/>
+                                                                </Border>
+                                                            </Grid>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                            
+                                            <!-- Пустое состояние -->
+                                            <Border Padding="40" Visibility="{Binding GameServers.Count, Converter={StaticResource BoolToVis}, ConverterParameter=inverse}">
+                                                <StackPanel HorizontalAlignment="Center">
+                                                    <TextBlock Text="🖥" FontSize="48" HorizontalAlignment="Center" Opacity="0.5"/>
+                                                    <TextBlock Text="{loc:Loc servers_loading}" Foreground="#6b7280" FontSize="16" HorizontalAlignment="Center" Margin="0,12,0,0"/>
+                                                </StackPanel>
+                                            </Border>
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+                                
+                                <!-- Settings Section -->
+                                <StackPanel Visibility="{Binding IsSettingsSection, Converter={StaticResource BoolToVis}}">
+                                    <Border Background="#CC151d33" CornerRadius="18" Padding="24" Margin="0,0,0,20">
+                                        <StackPanel>
+                                            <TextBlock Text="{loc:Loc settings_language}" Foreground="White" FontSize="18" FontWeight="SemiBold"/>
+                                            <ComboBox ItemsSource="{Binding LanguageDisplayNames}" SelectedIndex="{Binding SelectedLanguageIndex}" Margin="0,14,0,0" Background="#1f2a44" Foreground="Black" BorderBrush="Transparent" Padding="10,6" FontSize="14"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Background="#CC151d33" CornerRadius="18" Padding="24" Margin="0,0,0,20">
+                                        <StackPanel>
+                                            <TextBlock Text="{loc:Loc settings_server}" Foreground="White" FontSize="18" FontWeight="SemiBold"/>
+                                            <ComboBox ItemsSource="{Binding AvailableServers}" SelectedItem="{Binding SelectedServer}" Margin="0,14,0,0" Background="#1f2a44" Foreground="Black" BorderBrush="Transparent" Padding="10,6" FontSize="14"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <Border Background="#CC151d33" CornerRadius="18" Padding="24" Margin="0,0,0,20">
+                                        <StackPanel>
+                                            <TextBlock Text="{loc:Loc settings_download_method}" Foreground="White" FontSize="18" FontWeight="SemiBold"/>
+                                            <ComboBox ItemsSource="{Binding AvailableDownloadModes}" SelectedItem="{Binding DownloadMode}" Margin="0,14,0,0" Background="#1f2a44" Foreground="Black" BorderBrush="Transparent" Padding="10,6" FontSize="14"/>
+                                            <TextBlock Text="{Binding DownloadModeDescription}" Foreground="#9ca3af" Margin="0,8,0,0"/>
+                                            <CheckBox IsChecked="{Binding InstantInstall}" Margin="0,16,0,0" Foreground="White" FontSize="14">
+                                                <StackPanel>
+                                                    <TextBlock Text="{loc:Loc settings_instant_install}" Foreground="White"/>
+                                                    <TextBlock Text="{loc:Loc settings_instant_install_desc}" Foreground="#9ca3af" FontSize="12" Margin="0,4,0,0" TextWrapping="Wrap"/>
+                                                </StackPanel>
+                                            </CheckBox>
+                                        </StackPanel>
+                                    </Border>
+                                    
+                                    <!-- Путь к игре -->
+                                    <Border Background="#CC151d33" CornerRadius="18" Padding="24" Margin="0,0,0,20">
+                                        <StackPanel>
+                                            <TextBlock Text="{loc:Loc settings_game_path}" Foreground="White" FontSize="18" FontWeight="SemiBold"/>
+                                            <TextBlock Text="{loc:Loc settings_game_path_desc}" Foreground="#6b7280" FontSize="12" Margin="0,6,0,0"/>
+                                            <Grid Margin="0,14,0,0">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBox Text="{Binding GamePath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                                         Background="#1f2a44" Foreground="#d1d5f9" BorderBrush="#2a3352" Padding="10,8" FontSize="14"
+                                                         VerticalContentAlignment="Center"/>
+                                                <Button Content="📂" Style="{StaticResource SmallButton}" Grid.Column="1" Margin="8,0,0,0" Click="BrowseGamePath_Click" Padding="12,8" ToolTip="{loc:Loc btn_browse_tooltip}"/>
+                                                <Button Content="🔍" Style="{StaticResource SmallButton}" Grid.Column="2" Margin="4,0,0,0" Click="DetectExistingGame_Click" Padding="12,8" ToolTip="{loc:Loc btn_detect_tooltip}"/>
+                                            </Grid>
+                                            <!-- Статус обнаруженной игры -->
+                                            <Border Background="#1a2744" CornerRadius="8" Padding="12" Margin="0,12,0,0" Visibility="{Binding HasDetectedGame, Converter={StaticResource BoolToVis}}">
+                                                <StackPanel>
+                                                    <TextBlock Text="{Binding DetectedGameStatus}" Foreground="#10b981" FontSize="13"/>
+                                                </StackPanel>
+                                            </Border>
+                                            <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                                                <Button Content="{loc:Loc btn_open}" Style="{StaticResource SmallButton}" Click="OpenGameFolder_Click" Padding="12,6"/>
+                                                <Button Content="{loc:Loc btn_reset}" Style="{StaticResource SmallButton}" Margin="8,0,0,0" Click="ResetGamePath_Click" Padding="12,6"/>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Border>
+                                    
+                                    <!-- Путь к модам -->
+                                    <Border Background="#CC151d33" CornerRadius="18" Padding="24" Margin="0,0,0,20">
+                                        <StackPanel>
+                                            <TextBlock Text="{loc:Loc settings_mods_path}" Foreground="White" FontSize="18" FontWeight="SemiBold"/>
+                                            <TextBlock Text="{loc:Loc settings_mods_path_desc}" Foreground="#6b7280" FontSize="12" Margin="0,6,0,0"/>
+                                            <Grid Margin="0,14,0,0">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBox Text="{Binding ModsPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                                         Background="#1f2a44" Foreground="#d1d5f9" BorderBrush="#2a3352" Padding="10,8" FontSize="14"
+                                                         VerticalContentAlignment="Center"/>
+                                                <Button Content="📂" Style="{StaticResource SmallButton}" Grid.Column="1" Margin="8,0,0,0" Click="BrowseModsPath_Click" Padding="12,8" ToolTip="{loc:Loc btn_browse_tooltip}"/>
+                                            </Grid>
+                                            <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                                                <Button Content="{loc:Loc btn_open}" Style="{StaticResource SmallButton}" Click="OpenModsFolder_Click" Padding="12,6"/>
+                                                <Button Content="{loc:Loc btn_reset}" Style="{StaticResource SmallButton}" Margin="8,0,0,0" Click="ResetModsPath_Click" Padding="12,6"/>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Параметры запуска -->
+                                    <Border Background="#CC151d33" CornerRadius="18" Padding="24" Margin="0,0,0,20">
+                                        <StackPanel>
+                                            <TextBlock Text="{loc:Loc settings_launch_params}" Foreground="White" FontSize="18" FontWeight="SemiBold"/>
+                                            <TextBlock Text="{loc:Loc settings_launch_desc}" Foreground="#6b7280" FontSize="12" Margin="0,6,0,0"/>
+
+                                            <CheckBox IsChecked="{Binding UseCustomLaunchParams}" Margin="0,14,0,0" Foreground="White" FontSize="14">
+                                                <CheckBox.Content>
+                                                    <StackPanel>
+                                                        <TextBlock Text="{loc:Loc settings_use_mods_path}" Foreground="White"/>
+                                                                                                                 <TextBlock Text="{loc:Loc settings_auto_params}" Foreground="#6b7280" FontSize="11" Margin="0,4,0,0"/>
+                                                    </StackPanel>
+                                                </CheckBox.Content>
+                                            </CheckBox>
+
+                                            <Border Background="#1a2744" CornerRadius="8" Padding="12" Margin="0,12,0,0" Visibility="{Binding UseCustomLaunchParams, Converter={StaticResource BoolToVis}}">
+                                                <StackPanel>
+                                                    <TextBlock Text="{loc:Loc settings_launch_params_label}" Foreground="#9ca3af" FontSize="11"/>
+                                                    <TextBlock Foreground="#6366f1" FontSize="12" Margin="0,4,0,0" TextWrapping="Wrap">
+                                                        <Run Text="-addonsDir &quot;"/><Run Text="{Binding ModsPath, Mode=OneWay}"/><Run Text="&quot; -addonDownloadDir &quot;"/><Run Text="{Binding ModsPath, Mode=OneWay}"/><Run Text="_downloading&quot;"/>
+                                                    </TextBlock>
+                                                </StackPanel>
+                                            </Border>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Фон и оформление -->
+                                    <Border Background="#CC151d33" CornerRadius="18" Padding="24" Margin="0,0,0,20">
+                                        <StackPanel>
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel>
+                                                    <TextBlock Text="{loc:Loc settings_appearance}" Foreground="White" FontSize="18" FontWeight="SemiBold"/>
+                                                    <TextBlock Text="{loc:Loc settings_appearance_desc}" Foreground="#6b7280" FontSize="12" Margin="0,6,0,0"/>
+                                                </StackPanel>
+                                                <Button Grid.Column="1" Content="{loc:Loc btn_advanced}" Click="OpenAdvancedSettings_Click"
+                                                        Background="#6366f1" Foreground="White" BorderBrush="Transparent"
+                                                        Padding="16,10" Cursor="Hand" VerticalAlignment="Center">
+                                                    <Button.Template>
+                                                        <ControlTemplate TargetType="Button">
+                                                            <Border Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                            </Border>
+                                                            <ControlTemplate.Triggers>
+                                                                <Trigger Property="IsMouseOver" Value="True">
+                                                                    <Setter Property="Background" Value="#4f46e5"/>
+                                                                </Trigger>
+                                                            </ControlTemplate.Triggers>
+                                                        </ControlTemplate>
+                                                    </Button.Template>
+                                                </Button>
+                                            </Grid>
+
+                                            <CheckBox IsChecked="{Binding SlideshowEnabled}" Margin="0,14,0,0" Foreground="White" FontSize="14">
+                                                <CheckBox.Content>
+                                                    <StackPanel>
+                                                        <TextBlock Text="{loc:Loc settings_slideshow}" Foreground="White"/>
+                                                                                                                 <TextBlock Text="{loc:Loc settings_slideshow_desc}" Foreground="#6b7280" FontSize="11" Margin="0,4,0,0"/>
+                                                    </StackPanel>
+                                                </CheckBox.Content>
+                                            </CheckBox>
+
+                                            <Grid Margin="0,14,0,0" Visibility="{Binding SlideshowEnabled, Converter={StaticResource BoolToVis}}">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+
+                                                <TextBlock Text="{loc:Loc settings_slideshow_interval}" Foreground="#9ca3af" FontSize="13" VerticalAlignment="Center"/>
+
+                                                <Slider Grid.Column="1" Minimum="1" Maximum="30" 
+                                                        Value="{Binding SlideshowInterval}" 
+                                                        Margin="12,0,12,0" VerticalAlignment="Center"/>
+
+                                                <Border Grid.Column="2" Background="#1f2a44" CornerRadius="6" Padding="12,6" MinWidth="50">
+                                                    <TextBlock Text="{Binding SlideshowInterval}" Foreground="White" FontSize="14" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                                                </Border>
+                                            </Grid>
+
+                                            <!-- Разделитель -->
+                                            <Border Height="1" Background="#2a3352" Margin="0,20,0,16"/>
+
+                                            <!-- Настройки персонажа (упрощённые) -->
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+
+                                                <CheckBox IsChecked="{Binding CharacterOverlayEnabled}" Foreground="White" FontSize="14">
+                                                    <CheckBox.Content>
+                                                        <StackPanel>
+                                                            <TextBlock Text="{loc:Loc settings_show_logo}" Foreground="White"/>
+                                                                                                                         <TextBlock Text="{loc:Loc settings_logo_desc}" Foreground="#6b7280" FontSize="11" Margin="0,4,0,0"/>
+                                                        </StackPanel>
+                                                    </CheckBox.Content>
+                                                </CheckBox>
+                                            </Grid>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <Border Background="#CC151d33" CornerRadius="18" Padding="24">
+                                        <StackPanel>
+                                            <TextBlock Text="{loc:Loc settings_tools}" Foreground="White" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,14"/>
+                                            <StackPanel Orientation="Horizontal">
+                                                <Button Content="{loc:Loc btn_diagnostics}" Style="{StaticResource SmallButton}" Margin="0,0,12,0" Click="DiagnosticsButton_Click"/>
+                                                <Button Content="⚡ SpeedTest" Style="{StaticResource SmallButton}" Margin="0,0,12,0" Click="SpeedTestButton_Click"/>
+                                                <Button Content="{loc:Loc btn_test_all_servers}" Style="{StaticResource SmallButton}" Margin="0,0,12,0" Click="AllServersSpeedTest_Click"/>
+                                                <Button Content="{loc:Loc btn_refresh_catalog2}" Style="{StaticResource SmallButton}" Click="RefreshButton_Click"/>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+                            </Grid>
+                        </ScrollViewer>
+                    </Grid>
+                </Grid>
+
+                <!-- Progress -->
+                <Border Grid.Row="2" Background="{Binding Theme.BackgroundPanelBrush}" Padding="24" Visibility="{Binding IsDownloading, Converter={StaticResource BoolToVis}}">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <!-- Прогресс модов (если есть) -->
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,4" Visibility="{Binding ModsInstallProgress, Converter={StaticResource StringToVisibilityConverter}}">
+                                    <Border Background="#6366f1" CornerRadius="4" Padding="8,3" Margin="0,0,10,0">
+                                        <TextBlock Text="{Binding ModsInstallProgress}" FontSize="12" FontWeight="Bold" Foreground="White"/>
+                                    </Border>
+                                    <TextBlock Text="{Binding ModsInstallCurrentName}" FontSize="14" Foreground="#d1d5f9" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="400"/>
+                                </StackPanel>
+
+                                <TextBlock Text="{Binding DownloadPercent, StringFormat='{}{0:F1}%'}" FontSize="20" FontWeight="Bold" Foreground="White"/>
+                                <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                    <TextBlock Text="{Binding DownloadSpeed}" Foreground="#10b981" FontWeight="SemiBold"/>
+                                    <TextBlock Text=" • " Foreground="#6b7280"/>
+                                    <TextBlock Text="{Binding DownloadedSize}" Foreground="#9ca3af"/>
+                                    <TextBlock Text=" / " Foreground="#6b7280"/>
+                                    <TextBlock Text="{Binding TotalSize}" Foreground="#9ca3af"/>
+                                    <TextBlock Text=" • " Foreground="#6b7280"/>
+                                    <TextBlock Text="{loc:Loc progress_remaining}" Foreground="#6b7280"/>
+                                    <TextBlock Text="{Binding RemainingSize}" Foreground="#f59e0b" FontWeight="SemiBold"/>
+                                    <TextBlock Text=" • " Foreground="#6b7280"/>
+                                    <TextBlock Text="{Binding Eta}" Foreground="#9ca3af"/>
+                                </StackPanel>
+                            </StackPanel>
+                            <Button Grid.Column="1" Content="{loc:Loc btn_cancel}" Style="{StaticResource DangerButton}" Padding="18,8" Click="CancelButton_Click"/>
+                        </Grid>
+                        <ProgressBar Height="10" Value="{Binding DownloadPercent}" Maximum="100" Background="#1f2a44" Foreground="#6366f1" BorderThickness="0"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Status Row -->
+                <Border Grid.Row="3" Background="{Binding Theme.BackgroundMainBrush}" Padding="18">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="{Binding StatusMessage}" Foreground="#9ca3af" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="1" Text="{Binding SpeedTestResult}" Foreground="#10b981" Margin="20,0,0,0" VerticalAlignment="Center" Visibility="{Binding SpeedTestResult, Converter={StaticResource StringToVisibilityConverter}}"/>
+                        
+                        <!-- Console Button -->
+                        <Button Grid.Column="2" Click="ConsoleButton_Click" ToolTip="{loc:Loc console_tooltip}"
+                                Width="36" Height="28" Margin="16,0,0,0"
+                                Background="Transparent" BorderBrush="Transparent" Cursor="Hand">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="6" Padding="8,4">
+                                        <TextBlock Text="☢️" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#9ca3af"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="border" Property="Background" Value="#1f2a44"/>
+                                        </Trigger>
+                                        <Trigger Property="IsPressed" Value="True">
+                                            <Setter TargetName="border" Property="Background" Value="#2a3f5f"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

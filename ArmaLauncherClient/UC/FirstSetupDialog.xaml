@@ -1,0 +1,190 @@
+<Window x:Class="ArmaLauncherClient.UC.FirstSetupDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="clr-namespace:ArmaLauncherClient.Services"
+        Title="Initial Setup"
+        Height="600" Width="600"
+        WindowStartupLocation="CenterScreen"
+        Background="Transparent"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        ResizeMode="NoResize">
+    
+    <Border Background="#0d1424" BorderBrush="#2a3352" BorderThickness="1" CornerRadius="12">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            
+            <!-- Title Bar -->
+            <Border Grid.Row="0" Background="#111830" CornerRadius="12,12,0,0" Padding="20,16" MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
+                <Grid>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="⚙" FontSize="20" Foreground="#6366f1" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                        <TextBlock Text="{loc:Loc setup_welcome}" FontSize="18" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+            
+            <!-- Content -->
+            <Grid Grid.Row="1" Margin="24">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                
+                <!-- Приветствие -->
+                <StackPanel Grid.Row="0" Margin="0,0,0,24">
+                    <TextBlock Text="{loc:Loc setup_select_folders}" Foreground="#e5e7eb" FontSize="15" TextWrapping="Wrap"/>
+                    <TextBlock Text="{loc:Loc setup_ssd_hint}"
+                               Foreground="#6b7280" FontSize="12" Margin="0,8,0,0"/>
+                </StackPanel>
+                
+                <!-- Путь к игре -->
+                <Border Grid.Row="1" Background="#151d33" CornerRadius="10" Padding="16" Margin="0,0,0,16">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                            <TextBlock Text="🎮" FontSize="16" Margin="0,0,8,0"/>
+                            <TextBlock Text="{loc:Loc setup_game_folder}" Foreground="White" FontSize="14" FontWeight="SemiBold"/>
+                        </StackPanel>
+                        <TextBlock Text="{loc:Loc setup_game_size}" Foreground="#6b7280" FontSize="11" Margin="0,0,0,10"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox x:Name="GamePathTextBox" Background="#1f2a44" Foreground="#d1d5f9" 
+                                     BorderBrush="#2a3352" Padding="12,10" FontSize="13" VerticalContentAlignment="Center"/>
+                            <Button Grid.Column="1" Content="📂" Click="BrowseGamePath_Click" 
+                                    Background="#2a3352" Foreground="White" BorderBrush="Transparent"
+                                    Padding="14,10" Margin="8,0,0,0" Cursor="Hand">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter Property="Background" Value="#3b4f6b"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+                        </Grid>
+                        <TextBlock x:Name="GameDiskSpaceText" Text="" Foreground="#10b981" FontSize="11" Margin="0,8,0,0"/>
+                    </StackPanel>
+                </Border>
+                
+                <!-- Путь к модам -->
+                <Border Grid.Row="2" Background="#151d33" CornerRadius="10" Padding="16" Margin="0,0,0,16">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                            <TextBlock Text="📦" FontSize="16" Margin="0,0,8,0"/>
+                            <TextBlock Text="{loc:Loc setup_mods_folder}" Foreground="White" FontSize="14" FontWeight="SemiBold"/>
+                        </StackPanel>
+                        <TextBlock Text="{loc:Loc setup_mods_size}" Foreground="#6b7280" FontSize="11" Margin="0,0,0,10"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox x:Name="ModsPathTextBox" Background="#1f2a44" Foreground="#d1d5f9" 
+                                     BorderBrush="#2a3352" Padding="12,10" FontSize="13" VerticalContentAlignment="Center"/>
+                            <Button Grid.Column="1" Content="📂" Click="BrowseModsPath_Click" 
+                                    Background="#2a3352" Foreground="White" BorderBrush="Transparent"
+                                    Padding="14,10" Margin="8,0,0,0" Cursor="Hand">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter Property="Background" Value="#3b4f6b"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+                        </Grid>
+                        <TextBlock x:Name="ModsDiskSpaceText" Text="" Foreground="#10b981" FontSize="11" Margin="0,8,0,0"/>
+                    </StackPanel>
+                </Border>
+                
+                <!-- Использовать одну папку -->
+                <CheckBox x:Name="UseSameFolderCheckbox" Grid.Row="3" Margin="0,0,0,16" Foreground="White" 
+                          Checked="UseSameFolder_Changed" Unchecked="UseSameFolder_Changed">
+                    <CheckBox.Content>
+                        <StackPanel>
+                            <TextBlock Text="{loc:Loc setup_same_folder}" Foreground="White" FontSize="13"/>
+                            <TextBlock Text="{loc:Loc setup_same_folder_desc}" Foreground="#6b7280" FontSize="11" Margin="0,2,0,0"/>
+                        </StackPanel>
+                    </CheckBox.Content>
+                </CheckBox>
+                
+                <!-- Предупреждение о месте -->
+                <Border x:Name="WarningBorder" Grid.Row="4" Background="#1a1a2e" CornerRadius="8" Padding="12" 
+                        Margin="0,0,0,16" Visibility="Collapsed" VerticalAlignment="Top">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="⚠" FontSize="16" Foreground="#f59e0b" Margin="0,0,10,0"/>
+                        <TextBlock x:Name="WarningText" Text="" Foreground="#f59e0b" FontSize="12" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+                
+                <!-- Кнопки -->
+                <Grid Grid.Row="5">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <TextBlock x:Name="TotalSpaceText" Text="" Foreground="#6b7280" FontSize="11" VerticalAlignment="Center"/>
+                    
+                    <Button Grid.Column="1" Content="{loc:Loc btn_use_default}" Click="UseDefault_Click"
+                            Background="#2a3352" Foreground="White" BorderBrush="Transparent"
+                            Padding="16,12" Margin="0,0,12,0" Cursor="Hand">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="#3b4f6b"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                    
+                    <Button Grid.Column="2" Content="{loc:Loc btn_continue}" Click="Continue_Click"
+                            Background="#6366f1" Foreground="White" BorderBrush="Transparent"
+                            Padding="24,12" Cursor="Hand" FontWeight="SemiBold">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="#4f46e5"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                </Grid>
+            </Grid>
+        </Grid>
+    </Border>
+</Window>
+
+
+

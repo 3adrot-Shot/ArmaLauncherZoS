@@ -1,0 +1,9 @@
+<Solution>
+  <Configurations>
+    <BuildType Name="Debug" />
+    <BuildType Name="Publish" />
+    <BuildType Name="Release" />
+  </Configurations>
+  <Project Path="ArmaLauncherClient/ArmaLauncherClient.csproj" />
+  <Project Path="LauncherServer/LauncherServer.csproj" />
+</Solution>

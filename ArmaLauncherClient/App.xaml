@@ -1,0 +1,32 @@
+﻿<Application x:Class="ArmaLauncherClient.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:ArmaLauncherClient"
+             xmlns:converters="clr-namespace:ArmaLauncherClient.Converters">
+    <Application.Resources>
+        <ResourceDictionary>
+            <!-- Value Converters -->
+            <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+            <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter"/>
+            <converters:BytesToStringConverter x:Key="BytesToStringConverter"/>
+            
+            <!-- Global Styles -->
+            <Style TargetType="ProgressBar">
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ProgressBar">
+                            <Border Background="{TemplateBinding Background}" CornerRadius="4">
+                                <Border x:Name="PART_Track">
+                                    <Border x:Name="PART_Indicator" 
+                                            Background="{TemplateBinding Foreground}" 
+                                            CornerRadius="4"
+                                            HorizontalAlignment="Left"/>
+                                </Border>
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

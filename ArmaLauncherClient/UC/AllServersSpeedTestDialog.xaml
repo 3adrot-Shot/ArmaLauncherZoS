@@ -1,0 +1,154 @@
+<Window x:Class="ArmaLauncherClient.UC.AllServersSpeedTestDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="clr-namespace:ArmaLauncherClient.Services"
+        Title="{loc:Loc speedtest_title}"
+        Height="450" Width="520"
+        WindowStartupLocation="CenterOwner"
+        Background="Transparent"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        ResizeMode="NoResize">
+
+    <Border Background="#0d1424" BorderBrush="#2a3352" BorderThickness="1" CornerRadius="12">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- Custom Title Bar -->
+            <Border Grid.Row="0" Background="#111830" CornerRadius="12,12,0,0" Padding="16,12" MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="{loc:Loc speedtest_header}" FontSize="14" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
+                    <Button Grid.Column="1" Content="✕" Click="Close_Click" 
+                            Background="Transparent" Foreground="#9ca3af" BorderBrush="Transparent"
+                            Width="28" Height="28" FontSize="14" Cursor="Hand" Padding="0">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="{TemplateBinding Background}" CornerRadius="6">
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="#ef4444"/>
+                                        <Setter Property="Foreground" Value="White"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                </Grid>
+            </Border>
+
+            <!-- Content -->
+            <Grid Grid.Row="1" Margin="16">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Current Test Status -->
+                <Border Grid.Row="0" Background="#1a2744" CornerRadius="8" Padding="12" Margin="0,0,0,12">
+                    <StackPanel>
+                        <TextBlock x:Name="StatusText" Text="{loc:Loc speedtest_press_start}"
+                                   Foreground="#9ca3af" FontSize="12"/>
+                        <ProgressBar x:Name="ProgressBar" Height="6" Margin="0,8,0,0" 
+                                     Background="#2a3352" Foreground="#6366f1" BorderThickness="0"
+                                     Visibility="Collapsed"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Results List -->
+                <Border Grid.Row="1" Background="#111830" CornerRadius="8" Padding="12">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel x:Name="ResultsPanel">
+                            <!-- Results will be added here dynamically -->
+                        </StackPanel>
+                    </ScrollViewer>
+                </Border>
+
+                <!-- Best Server Result -->
+                <Border x:Name="BestServerBorder" Grid.Row="2" Background="#1a3a2a" CornerRadius="8" 
+                        Padding="12" Margin="0,12,0,0" Visibility="Collapsed">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="{loc:Loc speedtest_best}" Foreground="#22c55e" FontSize="11" FontWeight="SemiBold"/>
+                            <TextBlock x:Name="BestServerName" Text="" Foreground="White" FontSize="14" FontWeight="Bold" Margin="0,2,0,0"/>
+                            <TextBlock x:Name="BestServerDetails" Text="" Foreground="#9ca3af" FontSize="10" Margin="0,2,0,0"/>
+                        </StackPanel>
+                        <Button x:Name="UseBestServerButton" Grid.Column="1" Content="{loc:Loc speedtest_use}"
+                                Click="UseBestServer_Click" VerticalAlignment="Center"
+                                Background="#22c55e" Foreground="White" Padding="10,6" FontSize="11"
+                                BorderBrush="Transparent" Cursor="Hand">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Background" Value="#16a34a"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                    </Grid>
+                </Border>
+
+                <!-- Buttons -->
+                <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0"
+                            x:Name="ButtonsPanel">
+                    <Button x:Name="StartButton" Content="{loc:Loc btn_start}" Click="StartTest_Click"
+                            Background="#6366f1" Foreground="White" Padding="14,8" FontSize="12"
+                            BorderBrush="Transparent" Cursor="Hand" FontWeight="SemiBold">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="#4f46e5"/>
+                                    </Trigger>
+                                    <Trigger Property="IsEnabled" Value="False">
+                                        <Setter Property="Background" Value="#374151"/>
+                                        <Setter Property="Foreground" Value="#6b7280"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                    <Button x:Name="CloseButton" Content="{loc:Loc btn_close}" Click="Close_Click" Margin="8,0,0,0"
+                            Background="#374151" Foreground="White" Padding="14,8" FontSize="12"
+                            BorderBrush="Transparent" Cursor="Hand">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="#4b5563"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Grid>
+    </Border>
+</Window>
+
+

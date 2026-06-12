@@ -1,0 +1,403 @@
+<Window x:Class="ArmaLauncherClient.UC.AdvancedSettingsDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:ArmaLauncherClient.UC"
+        xmlns:loc="clr-namespace:ArmaLauncherClient.Services"
+        Title="Advanced Settings"
+        Height="560" Width="750"
+        WindowStartupLocation="CenterScreen"
+        Background="Transparent"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        ResizeMode="NoResize"
+        Topmost="False"
+        ShowInTaskbar="True">
+
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+    </Window.Resources>
+
+    <Grid>
+        <Border Background="#0d1424" BorderBrush="#6366f1" BorderThickness="1" CornerRadius="12">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- Title Bar -->
+                <Border Grid.Row="0" Background="#111830" CornerRadius="12,12,0,0" Padding="20,12" MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="⚙" FontSize="18" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                            <TextBlock Text="{loc:Loc advanced_title}" FontSize="16" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <Button Grid.Column="1" Content="✕" Click="Close_Click" 
+                                Background="Transparent" Foreground="#9ca3af" BorderBrush="Transparent"
+                                Width="28" Height="28" FontSize="14" Cursor="Hand" Padding="0">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}" CornerRadius="6">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Background" Value="#ef4444"/>
+                                            <Setter Property="Foreground" Value="White"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                    </Grid>
+                </Border>
+
+                <!-- Content -->
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="20">
+                    <StackPanel>
+
+                        <!-- Настройки персонажа -->
+                    <TextBlock Text="{loc:Loc advanced_logo}" Foreground="White" FontSize="15" FontWeight="SemiBold" Margin="0,0,0,12"/>
+                    <Border Background="#151d33" CornerRadius="10" Padding="16" Margin="0,0,0,20">
+                        <StackPanel>
+                            <!-- Включить/выключить -->
+                            <CheckBox x:Name="CharacterEnabledCheckbox" IsChecked="True" Margin="0,0,0,14" Foreground="White">
+                                <CheckBox.Content>
+                                    <TextBlock Text="{loc:Loc advanced_show_logo}" Foreground="White" FontSize="13"/>
+                                </CheckBox.Content>
+                            </CheckBox>
+                            
+                            <!-- Выбор изображения -->
+                            <TextBlock Text="{loc:Loc advanced_image}" Foreground="#9ca3af" FontSize="12" Margin="0,0,0,8"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
+                                <Border x:Name="Image1Border" Background="#1f2a44" CornerRadius="8" Padding="4" Margin="0,0,10,0" 
+                                        Cursor="Hand" MouseLeftButtonUp="SelectImage1_Click" BorderThickness="2" BorderBrush="Transparent">
+                                    <Image Source="/Images/Back/ar3zka.png" Width="80" Height="100" Stretch="Uniform"/>
+                                </Border>
+                                <Border x:Name="Image2Border" Background="#1f2a44" CornerRadius="8" Padding="4" Margin="0,0,10,0"
+                                        Cursor="Hand" MouseLeftButtonUp="SelectImage2_Click" BorderThickness="2" BorderBrush="Transparent">
+                                    <Image Source="/Images/Back/AU.png" Width="80" Height="100" Stretch="Uniform"/>
+                                </Border>
+                            </StackPanel>
+                            
+                            <!-- Прозрачность -->
+                            <Grid Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="60"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="{loc:Loc advanced_opacity}" Foreground="#9ca3af" FontSize="12" VerticalAlignment="Center"/>
+                                <Slider x:Name="OpacitySlider" Grid.Column="1" Minimum="0.1" Maximum="1" Value="0.7" 
+                                        Margin="10,0" VerticalAlignment="Center" ValueChanged="Slider_ValueChanged"/>
+                                <Border Grid.Column="2" Background="#1f2a44" CornerRadius="4" Padding="8,4">
+                                    <TextBlock x:Name="OpacityText" Text="70%" Foreground="White" FontSize="12" HorizontalAlignment="Center"/>
+                                </Border>
+                            </Grid>
+                            
+                            <!-- Размер -->
+                            <Grid Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="60"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="{loc:Loc advanced_max_height}" Foreground="#9ca3af" FontSize="12" VerticalAlignment="Center"/>
+                                <Slider x:Name="HeightSlider" Grid.Column="1" Minimum="200" Maximum="800" Value="600" 
+                                        Margin="10,0" VerticalAlignment="Center" ValueChanged="Slider_ValueChanged"/>
+                                <Border Grid.Column="2" Background="#1f2a44" CornerRadius="4" Padding="8,4">
+                                    <TextBlock x:Name="HeightText" Text="600px" Foreground="White" FontSize="12" HorizontalAlignment="Center"/>
+                                </Border>
+                            </Grid>
+                            
+                            <!-- Смещение X -->
+                            <Grid Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="60"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="{loc:Loc advanced_offset_x}" Foreground="#9ca3af" FontSize="12" VerticalAlignment="Center"/>
+                                <Slider x:Name="OffsetXSlider" Grid.Column="1" Minimum="-500" Maximum="500" Value="350" 
+                                        Margin="10,0" VerticalAlignment="Center" ValueChanged="Slider_ValueChanged"/>
+                                <Border Grid.Column="2" Background="#1f2a44" CornerRadius="4" Padding="8,4">
+                                    <TextBlock x:Name="OffsetXText" Text="350px" Foreground="White" FontSize="12" HorizontalAlignment="Center"/>
+                                </Border>
+                            </Grid>
+                            
+                            <!-- Смещение Y -->
+                            <Grid Margin="0,0,0,6">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="60"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="{loc:Loc advanced_offset_y}" Foreground="#9ca3af" FontSize="12" VerticalAlignment="Center"/>
+                                <Slider x:Name="OffsetYSlider" Grid.Column="1" Minimum="-300" Maximum="300" Value="150" 
+                                        Margin="10,0" VerticalAlignment="Center" ValueChanged="Slider_ValueChanged"/>
+                                <Border Grid.Column="2" Background="#1f2a44" CornerRadius="4" Padding="8,4">
+                                    <TextBlock x:Name="OffsetYText" Text="150px" Foreground="White" FontSize="12" HorizontalAlignment="Center"/>
+                                </Border>
+                            </Grid>
+                            
+                            <TextBlock Text="{loc:Loc advanced_offset_hint}" 
+                                       Foreground="#6b7280" FontSize="10" Margin="0,6,0,0"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Цвета темы -->
+                        <TextBlock Text="🎨 Цвета темы" Foreground="White" FontSize="15" FontWeight="SemiBold" Margin="0,0,0,12" IsEnabled="False" Visibility="Collapsed"/>
+                        <TextBlock Text="Нажмите на цветной квадрат для открытия палитры" Foreground="#6b7280" FontSize="11" Margin="0,0,0,12" IsEnabled="False" Visibility="Collapsed"/>
+
+                    <!-- Фоновые цвета -->
+                        <Border Background="#151d33" CornerRadius="10" Padding="16" Margin="0,0,0,12" IsEnabled="False" Visibility="Collapsed">
+                        <StackPanel>
+                            <TextBlock Text="ФОН" Foreground="#9ca3af" FontSize="11" FontWeight="Bold" Margin="0,0,0,10"/>
+
+                            <UniformGrid Columns="2" Rows="3">
+                                <!-- Основной фон -->
+                                <StackPanel Margin="0,0,8,8">
+                                    <TextBlock Text="Основной" Foreground="#6b7280" FontSize="11"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                        <Border x:Name="BackgroundMainPreview" Width="28" Height="28" CornerRadius="4" BorderBrush="#2a3352" BorderThickness="1" Cursor="Hand" MouseLeftButtonUp="ColorPreview_Click" Tag="BackgroundMain"/>
+                                        <TextBox x:Name="BackgroundMainInput" Text="#0d1424" Background="#1f2a44" Foreground="#d1d5f9" BorderBrush="#2a3352" Padding="6,4" FontFamily="Consolas" FontSize="11" Width="80" Margin="6,0,0,0" TextChanged="ColorInput_TextChanged" Tag="BackgroundMain"/>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <!-- Панели -->
+                                <StackPanel Margin="8,0,0,8">
+                                    <TextBlock Text="Панели" Foreground="#6b7280" FontSize="11"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                        <Border x:Name="BackgroundPanelPreview" Width="28" Height="28" CornerRadius="4" BorderBrush="#2a3352" BorderThickness="1" Cursor="Hand" MouseLeftButtonUp="ColorPreview_Click" Tag="BackgroundPanel"/>
+                                        <TextBox x:Name="BackgroundPanelInput" Text="#111830" Background="#1f2a44" Foreground="#d1d5f9" BorderBrush="#2a3352" Padding="6,4" FontFamily="Consolas" FontSize="11" Width="80" Margin="6,0,0,0" TextChanged="ColorInput_TextChanged" Tag="BackgroundPanel"/>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <!-- Карточки -->
+                                <StackPanel Margin="0,0,8,8">
+                                    <TextBlock Text="Карточки" Foreground="#6b7280" FontSize="11"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                        <Border x:Name="BackgroundCardPreview" Width="28" Height="28" CornerRadius="4" BorderBrush="#2a3352" BorderThickness="1" Cursor="Hand" MouseLeftButtonUp="ColorPreview_Click" Tag="BackgroundCard"/>
+                                        <TextBox x:Name="BackgroundCardInput" Text="#151d33" Background="#1f2a44" Foreground="#d1d5f9" BorderBrush="#2a3352" Padding="6,4" FontFamily="Consolas" FontSize="11" Width="80" Margin="6,0,0,0" TextChanged="ColorInput_TextChanged" Tag="BackgroundCard"/>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <!-- Поля ввода -->
+                                <StackPanel Margin="8,0,0,8">
+                                    <TextBlock Text="Поля ввода" Foreground="#6b7280" FontSize="11"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                        <Border x:Name="BackgroundInputPreview" Width="28" Height="28" CornerRadius="4" BorderBrush="#2a3352" BorderThickness="1" Cursor="Hand" MouseLeftButtonUp="ColorPreview_Click" Tag="BackgroundInput"/>
+                                        <TextBox x:Name="BackgroundInputInput" Text="#1f2a44" Background="#1f2a44" Foreground="#d1d5f9" BorderBrush="#2a3352" Padding="6,4" FontFamily="Consolas" FontSize="11" Width="80" Margin="6,0,0,0" TextChanged="ColorInput_TextChanged" Tag="BackgroundInput"/>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <!-- При наведении -->
+                                <StackPanel Margin="0,0,8,8">
+                                    <TextBlock Text="При наведении" Foreground="#6b7280" FontSize="11"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                        <Border x:Name="BackgroundHoverPreview" Width="28" Height="28" CornerRadius="4" BorderBrush="#2a3352" BorderThickness="1" Cursor="Hand" MouseLeftButtonUp="ColorPreview_Click" Tag="BackgroundHover"/>
+                                        <TextBox x:Name="BackgroundHoverInput" Text="#2a3f5f" Background="#1f2a44" Foreground="#d1d5f9" BorderBrush="#2a3352" Padding="6,4" FontFamily="Consolas" FontSize="11" Width="80" Margin="6,0,0,0" TextChanged="ColorInput_TextChanged" Tag="BackgroundHover"/>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <!-- Границы -->
+                                <StackPanel Margin="8,0,0,8">
+                                    <TextBlock Text="Границы" Foreground="#6b7280" FontSize="11"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                        <Border x:Name="BorderPreview" Width="28" Height="28" CornerRadius="4" BorderBrush="#2a3352" BorderThickness="1" Cursor="Hand" MouseLeftButtonUp="ColorPreview_Click" Tag="Border"/>
+                                        <TextBox x:Name="BorderInput" Text="#2a3352" Background="#1f2a44" Foreground="#d1d5f9" BorderBrush="#2a3352" Padding="6,4" FontFamily="Consolas" FontSize="11" Width="80" Margin="6,0,0,0" TextChanged="ColorInput_TextChanged" Tag="Border"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </UniformGrid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Кнопки и акценты -->
+                        <Border Background="#151d33" CornerRadius="10" Padding="16" Margin="0,0,0,12" IsEnabled="False" Visibility="Collapsed">
+                        <StackPanel>
+                            <TextBlock Text="КНОПКИ И АКЦЕНТЫ" Foreground="#9ca3af" FontSize="11" FontWeight="Bold" Margin="0,0,0,10"/>
+
+                            <UniformGrid Columns="2" Rows="2">
+                                <!-- Акцент основной -->
+                                <StackPanel Margin="0,0,8,8">
+                                    <TextBlock Text="Акцент (кнопки)" Foreground="#6b7280" FontSize="11"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                        <Border x:Name="AccentPreview" Width="28" Height="28" CornerRadius="4" BorderBrush="#2a3352" BorderThickness="1" Cursor="Hand" MouseLeftButtonUp="ColorPreview_Click" Tag="Accent"/>
+                                        <TextBox x:Name="AccentInput" Text="#6366f1" Background="#1f2a44" Foreground="#d1d5f9" BorderBrush="#2a3352" Padding="6,4" FontFamily="Consolas" FontSize="11" Width="80" Margin="6,0,0,0" TextChanged="ColorInput_TextChanged" Tag="Accent"/>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <!-- Акцент hover -->
+                                <StackPanel Margin="8,0,0,8">
+                                    <TextBlock Text="Акцент (hover)" Foreground="#6b7280" FontSize="11"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                        <Border x:Name="AccentHoverPreview" Width="28" Height="28" CornerRadius="4" BorderBrush="#2a3352" BorderThickness="1" Cursor="Hand" MouseLeftButtonUp="ColorPreview_Click" Tag="AccentHover"/>
+                                        <TextBox x:Name="AccentHoverInput" Text="#4f46e5" Background="#1f2a44" Foreground="#d1d5f9" BorderBrush="#2a3352" Padding="6,4" FontFamily="Consolas" FontSize="11" Width="80" Margin="6,0,0,0" TextChanged="ColorInput_TextChanged" Tag="AccentHover"/>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <!-- Акцент светлый -->
+                                <StackPanel Margin="0,0,8,8">
+                                    <TextBlock Text="Акцент (светлый)" Foreground="#6b7280" FontSize="11"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                        <Border x:Name="AccentLightPreview" Width="28" Height="28" CornerRadius="4" BorderBrush="#2a3352" BorderThickness="1" Cursor="Hand" MouseLeftButtonUp="ColorPreview_Click" Tag="AccentLight"/>
+                                        <TextBox x:Name="AccentLightInput" Text="#7d81ff" Background="#1f2a44" Foreground="#d1d5f9" BorderBrush="#2a3352" Padding="6,4" FontFamily="Consolas" FontSize="11" Width="80" Margin="6,0,0,0" TextChanged="ColorInput_TextChanged" Tag="AccentLight"/>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <!-- Кнопки вторичные -->
+                                <StackPanel Margin="8,0,0,8">
+                                    <TextBlock Text="Кнопки (вторичные)" Foreground="#6b7280" FontSize="11"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                        <Border x:Name="ButtonSecondaryPreview" Width="28" Height="28" CornerRadius="4" BorderBrush="#2a3352" BorderThickness="1" Cursor="Hand" MouseLeftButtonUp="ColorPreview_Click" Tag="ButtonSecondary"/>
+                                        <TextBox x:Name="ButtonSecondaryInput" Text="#6269AB" Background="#1f2a44" Foreground="#d1d5f9" BorderBrush="#2a3352" Padding="6,4" FontFamily="Consolas" FontSize="11" Width="80" Margin="6,0,0,0" TextChanged="ColorInput_TextChanged" Tag="ButtonSecondary"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </UniformGrid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Статусные цвета -->
+                        <Border Background="#151d33" CornerRadius="10" Padding="16" Margin="0,0,0,12" IsEnabled="False" Visibility="Collapsed">
+                        <StackPanel>
+                            <TextBlock Text="СТАТУСЫ" Foreground="#9ca3af" FontSize="11" FontWeight="Bold" Margin="0,0,0,10"/>
+
+                            <UniformGrid Columns="2" Rows="2">
+                                <!-- Успех -->
+                                <StackPanel Margin="0,0,8,8">
+                                    <TextBlock Text="Успех (зелёный)" Foreground="#6b7280" FontSize="11"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                        <Border x:Name="SuccessPreview" Width="28" Height="28" CornerRadius="4" BorderBrush="#2a3352" BorderThickness="1" Cursor="Hand" MouseLeftButtonUp="ColorPreview_Click" Tag="Success"/>
+                                        <TextBox x:Name="SuccessInput" Text="#10b981" Background="#1f2a44" Foreground="#d1d5f9" BorderBrush="#2a3352" Padding="6,4" FontFamily="Consolas" FontSize="11" Width="80" Margin="6,0,0,0" TextChanged="ColorInput_TextChanged" Tag="Success"/>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <!-- Предупреждение -->
+                                <StackPanel Margin="8,0,0,8">
+                                    <TextBlock Text="Предупреждение" Foreground="#6b7280" FontSize="11"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                        <Border x:Name="WarningPreview" Width="28" Height="28" CornerRadius="4" BorderBrush="#2a3352" BorderThickness="1" Cursor="Hand" MouseLeftButtonUp="ColorPreview_Click" Tag="Warning"/>
+                                        <TextBox x:Name="WarningInput" Text="#f59e0b" Background="#1f2a44" Foreground="#d1d5f9" BorderBrush="#2a3352" Padding="6,4" FontFamily="Consolas" FontSize="11" Width="80" Margin="6,0,0,0" TextChanged="ColorInput_TextChanged" Tag="Warning"/>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <!-- Ошибка -->
+                                <StackPanel Margin="0,0,8,8">
+                                    <TextBlock Text="Ошибка (красный)" Foreground="#6b7280" FontSize="11"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                        <Border x:Name="ErrorPreview" Width="28" Height="28" CornerRadius="4" BorderBrush="#2a3352" BorderThickness="1" Cursor="Hand" MouseLeftButtonUp="ColorPreview_Click" Tag="Error"/>
+                                        <TextBox x:Name="ErrorInput" Text="#ef4444" Background="#1f2a44" Foreground="#d1d5f9" BorderBrush="#2a3352" Padding="6,4" FontFamily="Consolas" FontSize="11" Width="80" Margin="6,0,0,0" TextChanged="ColorInput_TextChanged" Tag="Error"/>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <!-- Инфо -->
+                                <StackPanel Margin="8,0,0,8">
+                                    <TextBlock Text="Информация (синий)" Foreground="#6b7280" FontSize="11"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                        <Border x:Name="InfoPreview" Width="28" Height="28" CornerRadius="4" BorderBrush="#2a3352" BorderThickness="1" Cursor="Hand" MouseLeftButtonUp="ColorPreview_Click" Tag="Info"/>
+                                        <TextBox x:Name="InfoInput" Text="#3b82f6" Background="#1f2a44" Foreground="#d1d5f9" BorderBrush="#2a3352" Padding="6,4" FontFamily="Consolas" FontSize="11" Width="80" Margin="6,0,0,0" TextChanged="ColorInput_TextChanged" Tag="Info"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </UniformGrid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Текст -->
+                        <Border Background="#151d33" CornerRadius="10" Padding="16" Margin="0,0,0,12" IsEnabled="False" Visibility="Collapsed">
+                        <StackPanel>
+                            <TextBlock Text="ТЕКСТ" Foreground="#9ca3af" FontSize="11" FontWeight="Bold" Margin="0,0,0,10"/>
+
+                            <UniformGrid Columns="2" Rows="2">
+                                <!-- Основной текст -->
+                                <StackPanel Margin="0,0,8,8">
+                                    <TextBlock Text="Основной (белый)" Foreground="#6b7280" FontSize="11"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                        <Border x:Name="TextPrimaryPreview" Width="28" Height="28" CornerRadius="4" BorderBrush="#2a3352" BorderThickness="1" Cursor="Hand" MouseLeftButtonUp="ColorPreview_Click" Tag="TextPrimary"/>
+                                        <TextBox x:Name="TextPrimaryInput" Text="#FFFFFF" Background="#1f2a44" Foreground="#d1d5f9" BorderBrush="#2a3352" Padding="6,4" FontFamily="Consolas" FontSize="11" Width="80" Margin="6,0,0,0" TextChanged="ColorInput_TextChanged" Tag="TextPrimary"/>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <!-- Вторичный текст -->
+                                <StackPanel Margin="8,0,0,8">
+                                    <TextBlock Text="Вторичный" Foreground="#6b7280" FontSize="11"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                        <Border x:Name="TextSecondaryPreview" Width="28" Height="28" CornerRadius="4" BorderBrush="#2a3352" BorderThickness="1" Cursor="Hand" MouseLeftButtonUp="ColorPreview_Click" Tag="TextSecondary"/>
+                                        <TextBox x:Name="TextSecondaryInput" Text="#d1d5f9" Background="#1f2a44" Foreground="#d1d5f9" BorderBrush="#2a3352" Padding="6,4" FontFamily="Consolas" FontSize="11" Width="80" Margin="6,0,0,0" TextChanged="ColorInput_TextChanged" Tag="TextSecondary"/>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <!-- Приглушённый текст -->
+                                <StackPanel Margin="0,0,8,8">
+                                    <TextBlock Text="Приглушённый" Foreground="#6b7280" FontSize="11"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                        <Border x:Name="TextMutedPreview" Width="28" Height="28" CornerRadius="4" BorderBrush="#2a3352" BorderThickness="1" Cursor="Hand" MouseLeftButtonUp="ColorPreview_Click" Tag="TextMuted"/>
+                                        <TextBox x:Name="TextMutedInput" Text="#9ca3af" Background="#1f2a44" Foreground="#d1d5f9" BorderBrush="#2a3352" Padding="6,4" FontFamily="Consolas" FontSize="11" Width="80" Margin="6,0,0,0" TextChanged="ColorInput_TextChanged" Tag="TextMuted"/>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <!-- Тёмный текст -->
+                                <StackPanel Margin="8,0,0,8">
+                                    <TextBlock Text="Тёмный" Foreground="#6b7280" FontSize="11"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                        <Border x:Name="TextDarkPreview" Width="28" Height="28" CornerRadius="4" BorderBrush="#2a3352" BorderThickness="1" Cursor="Hand" MouseLeftButtonUp="ColorPreview_Click" Tag="TextDark"/>
+                                        <TextBox x:Name="TextDarkInput" Text="#6b7280" Background="#1f2a44" Foreground="#d1d5f9" BorderBrush="#2a3352" Padding="6,4" FontFamily="Consolas" FontSize="11" Width="80" Margin="6,0,0,0" TextChanged="ColorInput_TextChanged" Tag="TextDark"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </UniformGrid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Кнопки -->
+                    <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                        <Button Content="{loc:Loc btn_save}" Click="Save_Click"
+                                Background="#10b981" Foreground="White" BorderBrush="Transparent"
+                                Padding="20,10" Cursor="Hand" Margin="0,0,12,0">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Background" Value="#059669"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+
+                        <Button Content="{loc:Loc btn_reset2}" Click="Reset_Click"
+                                Background="#2a3352" Foreground="White" BorderBrush="Transparent"
+                                Padding="20,10" Cursor="Hand">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Background" Value="#3b4f6b"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                    </StackPanel>
+
+                </StackPanel>
+            </ScrollViewer>
+            </Grid>
+        </Border>
+
+        <!-- Color Picker Popup -->
+        <Popup x:Name="ColorPickerPopup" Placement="Mouse" StaysOpen="False" AllowsTransparency="True">
+            <local:ColorPickerPopup x:Name="ColorPicker"/>
+        </Popup>
+    </Grid>
+</Window>
+
+

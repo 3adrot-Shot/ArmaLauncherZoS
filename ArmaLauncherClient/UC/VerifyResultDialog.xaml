@@ -1,0 +1,159 @@
+<Window x:Class="ArmaLauncherClient.UC.VerifyResultDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="clr-namespace:ArmaLauncherClient.Services"
+        Title="{loc:Loc verify_title}"
+        Height="400" Width="550"
+        WindowStartupLocation="CenterOwner"
+        Background="Transparent"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        ResizeMode="NoResize">
+    
+    <Border Background="#0d1424" BorderBrush="#2a3352" BorderThickness="1" CornerRadius="12">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            
+            <!-- Custom Title Bar -->
+            <Border Grid.Row="0" Background="#111830" CornerRadius="12,12,0,0" Padding="16,12" MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock x:Name="TitleIcon" Text="⚠" FontSize="14" Foreground="#f59e0b" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <TextBlock x:Name="TitleText" Text="{loc:Loc verify_found}" FontSize="14" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <Button Grid.Column="1" Content="✕" Click="Close_Click" 
+                            Background="Transparent" Foreground="#9ca3af" BorderBrush="Transparent"
+                            Width="28" Height="28" FontSize="14" Cursor="Hand" Padding="0">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="{TemplateBinding Background}" CornerRadius="6">
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="#ef4444"/>
+                                        <Setter Property="Foreground" Value="White"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                </Grid>
+            </Border>
+            
+            <!-- Content -->
+            <Grid Grid.Row="1" Margin="16">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                
+                <!-- Summary -->
+                <Border Grid.Row="0" Background="#1a2744" CornerRadius="8" Padding="12" Margin="0,0,0,12">
+                    <StackPanel>
+                        <TextBlock x:Name="SummaryText" Text="" 
+                                   Foreground="White" FontSize="13" FontWeight="SemiBold"/>
+                        <TextBlock x:Name="SummaryDetails" Text="" 
+                                   Foreground="#9ca3af" FontSize="11" Margin="0,4,0,0"/>
+                    </StackPanel>
+                </Border>
+                
+                <!-- Files List -->
+                <Border Grid.Row="1" Background="#111830" CornerRadius="8" Padding="8">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <ItemsControl x:Name="FilesList">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="#1a2744" CornerRadius="6" Padding="10,8" Margin="0,0,0,4">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            
+                                            <!-- Icon -->
+                                            <TextBlock Grid.Column="0" Text="{Binding Icon}" FontSize="12" 
+                                                       Foreground="{Binding IconColor}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                            
+                                            <!-- File info -->
+                                            <StackPanel Grid.Column="1">
+                                                <TextBlock Text="{Binding FileName}" Foreground="White" FontSize="11" 
+                                                           TextTrimming="CharacterEllipsis"/>
+                                                <TextBlock Text="{Binding Details}" Foreground="#6b7280" FontSize="10" Margin="0,2,0,0"/>
+                                            </StackPanel>
+                                            
+                                            <!-- Status -->
+                                            <TextBlock Grid.Column="2" Text="{Binding StatusText}" FontSize="10"
+                                                       Foreground="{Binding StatusColor}" VerticalAlignment="Center"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Border>
+                
+                <!-- Buttons -->
+                <Grid Grid.Row="2" Margin="0,12,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <TextBlock x:Name="DownloadSizeText" Grid.Column="0" Text="" 
+                               Foreground="#9ca3af" FontSize="11" VerticalAlignment="Center"/>
+                    
+                    <Button x:Name="FixButton" Grid.Column="1" Content="{loc:Loc btn_fix}" Click="Fix_Click"
+                            Background="#6366f1" Foreground="White" Padding="14,8" FontSize="12"
+                            BorderBrush="Transparent" Cursor="Hand" FontWeight="SemiBold">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="#4f46e5"/>
+                                    </Trigger>
+                                    <Trigger Property="IsEnabled" Value="False">
+                                        <Setter Property="Background" Value="#374151"/>
+                                        <Setter Property="Foreground" Value="#6b7280"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                    
+                    <Button Grid.Column="2" Content="{loc:Loc btn_close}" Click="Close_Click" Margin="8,0,0,0"
+                            Background="#374151" Foreground="White" Padding="14,8" FontSize="12"
+                            BorderBrush="Transparent" Cursor="Hand">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="#4b5563"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                </Grid>
+            </Grid>
+        </Grid>
+    </Border>
+</Window>
+
+

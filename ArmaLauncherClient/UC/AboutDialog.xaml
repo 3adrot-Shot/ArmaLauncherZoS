@@ -1,0 +1,181 @@
+<Window x:Class="ArmaLauncherClient.UC.AboutDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:loc="clr-namespace:ArmaLauncherClient.Services"
+    Title="About"
+    Width="550"
+    Height="890"
+    WindowStartupLocation="CenterOwner"
+    WindowStyle="None"
+    AllowsTransparency="True"
+    Background="Transparent"
+    ShowInTaskbar="False"
+    ResizeMode="NoResize">
+    <Border Background="#0e1425" CornerRadius="16" SnapsToDevicePixels="True">
+    <Border.Effect>
+        <DropShadowEffect BlurRadius="25" ShadowDepth="0" Opacity="0.5" Color="#000000"/>
+    </Border.Effect>
+        
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+            
+        <!-- Header -->
+        <Border Grid.Row="0" Background="#111830" CornerRadius="16,16,0,0" Padding="20,16" MouseLeftButtonDown="Header_MouseDown">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                    
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="ℹ️" FontSize="20" Margin="0,0,10,0"/>
+                    <TextBlock Text="{loc:Loc about_title}" FontSize="16" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
+                </StackPanel>
+                    
+                <Button Grid.Column="1" Content="✕" Click="CloseButton_Click" 
+                        Width="32" Height="32" Background="Transparent" Foreground="#9ca3af" 
+                        BorderBrush="Transparent" Cursor="Hand" FontSize="14">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}" CornerRadius="8">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#dc2626"/>
+                                    <Setter Property="Foreground" Value="White"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+            </Grid>
+        </Border>
+        
+        <!-- Content -->
+        <ScrollViewer Grid.Row="1" Padding="24,16" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <!-- Logo and Title -->
+                <StackPanel HorizontalAlignment="Center" Margin="0,0,0,20">
+                    <Image Source="/Images/OnlyLogoAU.png" Width="80" Height="80" HorizontalAlignment="Center"/>
+                    <TextBlock Text="Arma Reforger Launcher" FontSize="22" FontWeight="Bold" Foreground="White" 
+                               HorizontalAlignment="Center" Margin="0,12,0,0"/>
+                        <TextBlock x:Name="LauncherVersionTextBlock"
+                           FontSize="12"
+                           Foreground="#6b7280"
+                           HorizontalAlignment="Center"
+                           Margin="0,18,0,0"/>
+                    </StackPanel>
+                
+                <!-- Welcome Message -->
+                <Border Background="#161f35" CornerRadius="12" Padding="20" Margin="0,0,0,16">
+                    <TextBlock TextWrapping="Wrap" FontSize="14" Foreground="#d1d5db" LineHeight="22">
+                        <Run FontWeight="SemiBold" Foreground="White" Text="{Binding [about_hello], Source={x:Static loc:LocalizationManager.Instance}, Mode=OneWay}"/>
+                        <LineBreak/><LineBreak/>
+                        <Run Text="{Binding [about_welcome_text], Source={x:Static loc:LocalizationManager.Instance}, Mode=OneWay}"/>
+                    </TextBlock>
+                </Border>
+                
+                <!-- About Development -->
+                <Border Background="#161f35" CornerRadius="12" Padding="20" Margin="0,0,0,16">
+                    <StackPanel>
+                        <TextBlock Text="{loc:Loc about_dev_title}" FontSize="15" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,12"/>
+                        <TextBlock TextWrapping="Wrap" FontSize="14" Foreground="#d1d5db" LineHeight="22">
+                            <Run Text="{Binding [about_dev_text1], Source={x:Static loc:LocalizationManager.Instance}, Mode=OneWay}"/>
+                            <Run FontWeight="SemiBold" Foreground="#f59e0b" Text="{Binding [about_dev_flame], Source={x:Static loc:LocalizationManager.Instance}, Mode=OneWay}"/>
+                            <Run Text="{Binding [about_dev_text2], Source={x:Static loc:LocalizationManager.Instance}, Mode=OneWay}"/>
+                            <Run FontWeight="SemiBold" Foreground="#6366f1">"Zone of Survival (ZoS)"</Run>
+                            <Run Text="{Binding [about_dev_text3], Source={x:Static loc:LocalizationManager.Instance}, Mode=OneWay}"/>
+                            <LineBreak/><LineBreak/>
+                            <Run Text="{Binding [about_dev_text4], Source={x:Static loc:LocalizationManager.Instance}, Mode=OneWay}"/>
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
+                
+                <!-- Feedback -->
+                <Border Background="#161f35" CornerRadius="12" Padding="20" Margin="0,0,0,16">
+                    <StackPanel>
+                        <TextBlock Text="{loc:Loc about_feedback_title}" FontSize="15" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,12"/>
+                        <TextBlock TextWrapping="Wrap" FontSize="14" Foreground="#d1d5db" LineHeight="22">
+                            <Run Text="{Binding [about_feedback_text1], Source={x:Static loc:LocalizationManager.Instance}, Mode=OneWay}"/>
+                            <LineBreak/><LineBreak/>
+                            <Run Text="{Binding [about_feedback_text2], Source={x:Static loc:LocalizationManager.Instance}, Mode=OneWay}"/>
+                        </TextBlock>
+                        
+                        <!-- Telegram Link -->
+                        <Button x:Name="TelegramButton" Click="TelegramButton_Click" Margin="0,16,0,0"
+                                Background="#0088cc" Foreground="White" BorderBrush="Transparent" 
+                                Padding="16,12" Cursor="Hand" HorizontalAlignment="Left">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}" CornerRadius="10" Padding="{TemplateBinding Padding}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="📱" FontSize="16" Margin="0,0,8,0"/>
+                                            <TextBlock Text="{Binding [about_telegram], Source={x:Static loc:LocalizationManager.Instance}, Mode=OneWay}" FontSize="13" FontWeight="Medium" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Background" Value="#0077b5"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                    </StackPanel>
+                </Border>
+                
+                <!-- Support -->
+                <Border Background="#1a2744" CornerRadius="12" Padding="20" Margin="0,0,0,16">
+                    <StackPanel>
+                        <TextBlock Text="{loc:Loc about_support_title}" FontSize="15" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,12"/>
+                        <TextBlock TextWrapping="Wrap" FontSize="14" Foreground="#d1d5db" LineHeight="22">
+                            <Run Text="{Binding [about_support_text], Source={x:Static loc:LocalizationManager.Instance}, Mode=OneWay}"/>
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
+                
+                <!-- Signature -->
+                <TextBlock Text="{loc:Loc about_enjoy}" FontSize="15" Foreground="#9ca3af"
+                           HorizontalAlignment="Center" Margin="0,8,0,0"/>
+                    <TextBlock FontSize="14" Foreground="#6366f1" FontWeight="SemiBold" 
+                           HorizontalAlignment="Center" Margin="0,8,0,0">
+                    <Run Text="P.S. "/>
+                    <Run Text="{Binding [about_dev_flame], Source={x:Static loc:LocalizationManager.Instance}, Mode=OneWay}" Foreground="#f59e0b"/>
+                    <Run Text=" &amp; "/>
+                    <Run Text="ZoS" Foreground="#6366f1"/>
+                    </TextBlock>
+                </StackPanel>
+        </ScrollViewer>
+            
+        <!-- Footer -->
+        <Border Grid.Row="2" Background="#111830" CornerRadius="0,0,16,16" Padding="16,14">
+            <Grid>
+                <TextBlock Text="{loc:Loc about_copyright}" Foreground="#6b7280" FontSize="11" VerticalAlignment="Center"/>
+                <Button Content="{loc:Loc btn_close}" Click="CloseButton_Click" HorizontalAlignment="Right"
+                        Background="#1f2a44" Foreground="#d1d5f9" BorderBrush="Transparent" 
+                        Padding="24,8" FontSize="13" Cursor="Hand">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#2a3f5f"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+            </Grid>
+        </Border>
+    </Grid>
+</Border>
+</Window>
+
+
