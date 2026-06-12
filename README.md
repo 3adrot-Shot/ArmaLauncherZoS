@@ -68,15 +68,15 @@
 
 ### Списки игроков
 
-![Списки игроков](./ArmaLauncherClient/docs/images/players-screen.png)
+![Списки игроков](./ArmaLauncherClient/docs/images/playerlist-screen.png)
 
 ### График онлайна сервера
 
-![График онлайна сервера](./ArmaLauncherClient/docs/images/online-graph-screen.png)
+![График онлайна сервера](./ArmaLauncherClient/docs/images/graph-screen.png)
 
 ### Логи и диагностика
 
-![Логи и диагностика](./ArmaLauncherClient/docs/images/logs-screen.png)
+![Логи и диагностика](./ArmaLauncherClient/docs/images/logsview-screen.png)
 
 ### Настройки
 
