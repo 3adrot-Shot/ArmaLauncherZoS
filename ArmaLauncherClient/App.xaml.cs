@@ -17,8 +17,7 @@ public partial class App : Application
     public static readonly List<ServerInfo> AvailableServers =
 
     [
-        new ServerInfo { Name = "ZoS Host 1", Url = "http://85.236.0.91:5000" },
-        new ServerInfo { Name = "ZoS Host 2", Url = "http://77.50.202.94:5000" },
+        new ServerInfo { Name = "ZoS Host 1", Url = "http://77.50.202.94:5000" },
         new ServerInfo { Name = "Always Msk 1", Url = "http://87.251.78.224:5000" },
         new ServerInfo { Name = "Always Germany 1", Url = "http://85.137.253.145:5000" },
         new ServerInfo { Name = "Always Germany 2", Url = "http://85.137.253.158:5000" }
