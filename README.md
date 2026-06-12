@@ -48,23 +48,23 @@
 
 ### Главный экран
 
-![Главный экран](./docs/images/main-screen.png)
+![Главный экран](./ArmaLauncherClient/docs/images/main-screen.png)
 
 ### Установка / обновление
 
-![Установка и обновление](./docs/images/update-screen.png)
+![Установка и обновление](./ArmaLauncherClient/docs/images/update-screen.png)
 
 ### Моды
 
-![Раздел модов](./docs/images/mods-screen.png)
+![Раздел модов](./ArmaLauncherClient/docs/images/mods-screen.png)
 
 ### Серверы
 
-![Серверы](./docs/images/servers-screen.png)
+![Серверы](./ArmaLauncherClient/docs/images/servers-screen.png)
 
 ### Настройки
 
-![Настройки](./docs/images/settings-screen.png)
+![Настройки](./ArmaLauncherClient/docs/images/settings-screen.png)
 
 ## Для обычного пользователя
 
