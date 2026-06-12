@@ -58,9 +58,25 @@
 
 ![Раздел модов](./ArmaLauncherClient/docs/images/mods-screen.png)
 
+### Новости проекта
+
+![Новости проекта](./ArmaLauncherClient/docs/images/news-screen.png)
+
 ### Серверы
 
 ![Серверы](./ArmaLauncherClient/docs/images/servers-screen.png)
+
+### Списки игроков
+
+![Списки игроков](./ArmaLauncherClient/docs/images/players-screen.png)
+
+### График онлайна сервера
+
+![График онлайна сервера](./ArmaLauncherClient/docs/images/online-graph-screen.png)
+
+### Логи и диагностика
+
+![Логи и диагностика](./ArmaLauncherClient/docs/images/logs-screen.png)
 
 ### Настройки
 
