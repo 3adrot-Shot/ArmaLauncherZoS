@@ -1,4 +1,4 @@
-namespace LauncherServer.Models;
+﻿namespace LauncherServer.Models;
 
 /// <summary>
 /// Информация об аддоне (моде), полученная из ServerData.json

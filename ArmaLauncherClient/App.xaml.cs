@@ -269,16 +269,9 @@ public partial class App : Application
             var previousShutdownMode = ShutdownMode;
             ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
-            // Проверяем наличие Game на каждом сервере
-            await CheckServersForGameAsync();
-            
-            // Выбираем первый сервер с игрой
-            var firstWithGame = AvailableServers.FirstOrDefault(s => s.HasGame);
-            if (firstWithGame != null)
-            {
-                CurrentServer = firstWithGame;
-            }
-            
+            // НЕ опрашиваем серверы до показа окна — это даёт огромную задержку первого кадра.
+            // Стартуем сразу с дефолтным сервером (CurrentServer), а опрос/переключение
+            // выполняем в фоне уже ПОСЛЕ показа главного окна.
             InitializeHost();
             await _host!.StartAsync();
 
@@ -323,6 +316,9 @@ public partial class App : Application
             mainWindow.Show();
 
             FileLogger.Log("Window shown");
+
+            // Опрос серверов запускаем уже ПОСЛЕ показа окна, чтобы UI не ждал сеть.
+            _ = ProbeServersAndMaybeSwitchAsync(viewModel);
         }
         catch (Exception ex)
         {
@@ -335,37 +331,90 @@ public partial class App : Application
         base.OnStartup(e);
     }
 
-    private static async Task CheckServersForGameAsync()
+    /// <summary>
+    /// Опрос всех серверов и автоматическое переключение на лучший доступный.
+    /// Запускается уже ПОСЛЕ показа главного окна, чтобы UI не блокировался сетью.
+    /// Если текущий сервер отвечает и у него HasGame=true — ничего не переключается.
+    /// </summary>
+    private const int BackgroundServerProbeTimeoutMs = 1500;
+
+    private static async Task ProbeServersAndMaybeSwitchAsync(MainViewModel viewModel)
     {
-        FileLogger.Log("Checking servers for game availability...");
-
-        using var httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(5) };
-
-        var tasks = AvailableServers.Select(async server =>
+        viewModel.SetCheckingServersState(true);
+        try
         {
-            try
+            FileLogger.Log("Probing servers in background after window shown...");
+
+            using var sharedClient = new HttpClient
             {
-                var response = await httpClient.GetAsync($"{server.Url}/info");
-                if (response.IsSuccessStatusCode)
-                {
-                    var json = await response.Content.ReadAsStringAsync();
-                    // Проверяем наличие поля game в ответе
-                    server.HasGame = json.Contains("\"game\"") && !json.Contains("\"game\":null");
-                }
-                else
-                {
-                    server.HasGame = false;
-                }
+                Timeout = TimeSpan.FromMilliseconds(BackgroundServerProbeTimeoutMs)
+            };
+
+            // Опрашиваем все серверы параллельно. Как только каждый ответил —
+            // тут же обновляем список AvailableServers в UI, чтобы мёртвые серверы
+            // постепенно исчезали из селектора по мере получения ответов.
+            var probeTasks = AvailableServers.Select(async server =>
+            {
+                var result = await ProbeServerAsync(sharedClient, server);
+                await viewModel.NotifyAvailableServersChangedAsync();
+                return result;
+            }).ToArray();
+
+            await Task.WhenAll(probeTasks);
+
+            // Финальное уведомление на случай гонок
+            await viewModel.NotifyAvailableServersChangedAsync();
+
+            // Если текущий сервер уже годится — ничего не трогаем
+            if (CurrentServer.HasGame)
+            {
+                FileLogger.Log($"Current server {CurrentServer.Name} is OK, no switch needed");
+                return;
             }
-            catch
+
+            // Иначе ищем первый ответивший с игрой и мягко переключаемся через VM
+            var firstWithGame = AvailableServers.FirstOrDefault(s => s.HasGame);
+            if (firstWithGame == null)
+            {
+                FileLogger.Log("No server with game available; staying on default");
+                return;
+            }
+
+            FileLogger.Log($"Auto-switching to better server: {firstWithGame.Name} ({firstWithGame.Url})");
+            await viewModel.RequestServerSwitchAsync(firstWithGame);
+        }
+        catch (Exception ex)
+        {
+            FileLogger.Log($"Background server probe failed: {ex.Message}");
+        }
+        finally
+        {
+            viewModel.SetCheckingServersState(false);
+        }
+    }
+
+    private static async Task<ServerInfo?> ProbeServerAsync(HttpClient client, ServerInfo server)
+    {
+        try
+        {
+            using var response = await client.GetAsync($"{server.Url}/info");
+            if (!response.IsSuccessStatusCode)
             {
                 server.HasGame = false;
+                return null;
             }
 
-            FileLogger.Log($"Server {server.Name}: HasGame={server.HasGame}");
-        });
-
-        await Task.WhenAll(tasks);
+            var json = await response.Content.ReadAsStringAsync();
+            var hasGame = json.Contains("\"game\"") && !json.Contains("\"game\":null");
+            server.HasGame = hasGame;
+            FileLogger.Log($"Server {server.Name}: HasGame={hasGame}");
+            return hasGame ? server : null;
+        }
+        catch
+        {
+            server.HasGame = false;
+            return null;
+        }
     }
 
     /// <summary>
@@ -506,7 +555,7 @@ public class ServerInfo
 {
     public required string Name { get; init; }
     public required string Url { get; init; }
-    public bool HasGame { get; set; } = true; // Will be checked at runtime
-    
+    public bool HasGame { get; set; } = false; // Будет проверено в фоне при старте
+
     public override string ToString() => $"{Name} ({Url})";
 }

@@ -1,4 +1,4 @@
-namespace ArmaLauncherClient.Models;
+﻿namespace ArmaLauncherClient.Models;
 
 public enum DownloadState
 {

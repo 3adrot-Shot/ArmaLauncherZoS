@@ -22,8 +22,10 @@ public sealed class MainViewModel : INotifyPropertyChanged, IAsyncDisposable
     private readonly Dispatcher _dispatcher;
     private readonly NewsService _newsService;
     private readonly ServerMonitorService _serverMonitorService;
+    private readonly DispatcherTimer _gameProcessMonitorTimer;
     private CancellationTokenSource? _cts;
     private CancellationTokenSource? _autoRefreshCts;
+    private Process? _trackedGameProcess;
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -36,8 +38,11 @@ public sealed class MainViewModel : INotifyPropertyChanged, IAsyncDisposable
     /// </summary>
     public ObservableCollection<GameServerInfo> ServersForModsFilter { get; } = [];
 
-    // Фильтруем сервера - показываем только те, у которых есть Game
-    public IEnumerable<ServerInfo> AvailableServers => App.AvailableServers.Where(s => s.HasGame);
+    // Фильтруем серверы — показываем только те, у которых HasGame подтверждён.
+    // Текущий выбранный сервер показываем всегда, даже если статус ещё не пришёл,
+    // чтобы селектор не оставался пустым на короткое время фоновой проверки.
+    public IEnumerable<ServerInfo> AvailableServers =>
+        App.AvailableServers.Where(s => s.HasGame || s == App.CurrentServer);
 
     public ServerInfo? SelectedServer
     {
@@ -132,8 +137,9 @@ public sealed class MainViewModel : INotifyPropertyChanged, IAsyncDisposable
     };
 
     public bool IsPlayAction => EvaluateGameAction() == GameAction.Play;
+    public bool IsGameRunning => CheckIsGameRunning();
     public bool HasMainModel => MainModel != null;
-    public bool CanExecuteGameAction => !IsDownloading && MainModel != null;
+    public bool CanExecuteGameAction => !IsDownloading && MainModel != null && !(IsPlayAction && IsGameRunning);
 
     public string GameStatusText
     {
@@ -655,6 +661,48 @@ public sealed class MainViewModel : INotifyPropertyChanged, IAsyncDisposable
     {
         get => _isLoading;
         set { _isLoading = value; OnPropertyChanged(); }
+    }
+
+    // Состояние «идёт фоновая проверка серверов» — для плашки в UI на старте.
+    private bool _isCheckingServers;
+    public bool IsCheckingServers
+    {
+        get => _isCheckingServers;
+        private set
+        {
+            if (_isCheckingServers == value) return;
+            _isCheckingServers = value;
+            OnPropertyChanged();
+        }
+    }
+
+    // Текст рядом со спиннером в плашке "Проверяем серверы..."
+    private string _serverCheckStatusText = LocalizationManager.S("status_checking_servers");
+    public string ServerCheckStatusText
+    {
+        get => _serverCheckStatusText;
+        private set
+        {
+            if (_serverCheckStatusText == value) return;
+            _serverCheckStatusText = value;
+            OnPropertyChanged();
+        }
+    }
+
+    /// <summary>
+    /// Включает/выключает индикатор фоновой проверки серверов.
+    /// Вызывается из App при старте до и после фонового опроса.
+    /// </summary>
+    public void SetCheckingServersState(bool isChecking)
+    {
+        _dispatcher.BeginInvoke(() =>
+        {
+            if (isChecking)
+            {
+                ServerCheckStatusText = LocalizationManager.S("status_checking_servers");
+            }
+            IsCheckingServers = isChecking;
+        });
     }
 
     private double _downloadPercent;
@@ -1194,6 +1242,11 @@ public sealed class MainViewModel : INotifyPropertyChanged, IAsyncDisposable
         _dispatcher = Application.Current.Dispatcher;
         _newsService = new NewsService(httpClient);
         _serverMonitorService = new ServerMonitorService(httpClient);
+        _gameProcessMonitorTimer = new DispatcherTimer(DispatcherPriority.Background, _dispatcher)
+        {
+            Interval = TimeSpan.FromSeconds(2)
+        };
+        _gameProcessMonitorTimer.Tick += (_, _) => RefreshGameRunningState();
         _updateManager.ProgressChanged += OnProgressChanged;
 
         FileLogger.Log("MainViewModel created");
@@ -1203,6 +1256,9 @@ public sealed class MainViewModel : INotifyPropertyChanged, IAsyncDisposable
 
         // Предзагрузка всех данных в фоне при старте
         _ = PreloadAllDataAsync();
+
+        RefreshGameRunningState();
+        _gameProcessMonitorTimer.Start();
     }
     
     /// <summary>
@@ -1210,16 +1266,13 @@ public sealed class MainViewModel : INotifyPropertyChanged, IAsyncDisposable
     /// </summary>
     private async Task PreloadAllDataAsync()
     {
-        // Минимальная задержка чтобы UI успел отрисоваться
-        await Task.Delay(100);
-        
         // Загружаем всё параллельно для максимальной скорости
         var modelsTask = PreloadModelsAsync();
         var newsTask = LoadNewsInBackgroundAsync();
         var serversTask = LoadServersInBackgroundAsync();
-        
+
         await Task.WhenAll(modelsTask, newsTask, serversTask);
-        
+
         // Запускаем периодическое обновление серверов каждые 30 секунд
         _ = StartServersAutoRefreshAsync();
     }
@@ -1497,6 +1550,44 @@ public sealed class MainViewModel : INotifyPropertyChanged, IAsyncDisposable
         }
     }
     
+    /// <summary>
+    /// Уведомляет UI о том, что список доступных серверов изменился
+    /// (например, после фонового опроса при старте).
+    /// </summary>
+    public Task NotifyAvailableServersChangedAsync()
+    {
+        return _dispatcher.InvokeAsync(() =>
+        {
+            OnPropertyChanged(nameof(AvailableServers));
+            OnPropertyChanged(nameof(SelectedServer));
+        }).Task;
+    }
+
+    /// <summary>
+    /// Публичная точка входа для запроса переключения сервера из внешнего кода
+    /// (например, фонового опроса при старте). Переключение пропускается,
+    /// если идёт скачивание или уже выбран этот же сервер.
+    /// </summary>
+    public async Task RequestServerSwitchAsync(ServerInfo newServer)
+    {
+        if (newServer == null || newServer == App.CurrentServer)
+            return;
+        if (IsDownloading)
+            return;
+
+        await SwitchServerAsync(newServer);
+
+        // После автопереключения сразу перезагружаем модели, чтобы UI не остался пустым
+        try
+        {
+            await RefreshModelsAsync();
+        }
+        catch (Exception ex)
+        {
+            FileLogger.Log($"[AUTO-SWITCH] RefreshModelsAsync failed: {ex.Message}");
+        }
+    }
+
     private async Task SwitchServerAsync(ServerInfo newServer)
     {
         if (IsDownloading)
@@ -2347,6 +2438,7 @@ public sealed class MainViewModel : INotifyPropertyChanged, IAsyncDisposable
 
             if (process != null)
             {
+                TrackGameProcess(process);
                 FileLogger.Log($"[LAUNCH] Process started: PID={process.Id}");
                 StatusMessage = UseCustomLaunchParams 
                     ? LocalizationManager.F("status_game_launched_params", process.Id) 
@@ -2423,8 +2515,100 @@ public sealed class MainViewModel : INotifyPropertyChanged, IAsyncDisposable
         OnPropertyChanged(nameof(GameStatusText));
         OnPropertyChanged(nameof(GameInstallPath));
         OnPropertyChanged(nameof(CanExecuteGameAction));
+        OnPropertyChanged(nameof(IsGameRunning));
         OnPropertyChanged(nameof(IsPlayAction));
         OnPropertyChanged(nameof(HasMainModel));
+    }
+
+    private void TrackGameProcess(Process process)
+    {
+        try
+        {
+            if (_trackedGameProcess != null)
+                _trackedGameProcess.Exited -= OnTrackedGameProcessExited;
+
+            process.EnableRaisingEvents = true;
+            process.Exited += OnTrackedGameProcessExited;
+            _trackedGameProcess = process;
+            RefreshGameRunningState();
+        }
+        catch (Exception ex)
+        {
+            FileLogger.Log($"[LAUNCH] Failed to track game process: {ex.Message}");
+        }
+    }
+
+    private void OnTrackedGameProcessExited(object? sender, EventArgs e)
+    {
+        _dispatcher.BeginInvoke(RefreshGameRunningState);
+    }
+
+    private void RefreshGameRunningState()
+    {
+        UpdateGameBindings();
+    }
+
+    private bool CheckIsGameRunning()
+    {
+        if (IsTrackedProcessAlive())
+            return true;
+
+        var installDir = _updateManager.GameInstallRoot;
+        var expectedExePath = Path.Combine(installDir, "ArmaReforgerSteam.exe");
+        if (!File.Exists(expectedExePath))
+            return false;
+
+        try
+        {
+            foreach (var process in Process.GetProcessesByName("ArmaReforgerSteam"))
+            {
+                try
+                {
+                    if (string.Equals(process.MainModule?.FileName, expectedExePath, StringComparison.OrdinalIgnoreCase))
+                    {
+                        if (!ReferenceEquals(_trackedGameProcess, process))
+                            TrackGameProcess(process);
+
+                        return true;
+                    }
+                }
+                catch
+                {
+                    if (!process.HasExited)
+                        return true;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            FileLogger.Log($"[LAUNCH] Failed to inspect running game processes: {ex.Message}");
+        }
+
+        return false;
+    }
+
+    private bool IsTrackedProcessAlive()
+    {
+        if (_trackedGameProcess == null)
+            return false;
+
+        try
+        {
+            if (_trackedGameProcess.HasExited)
+            {
+                _trackedGameProcess.Exited -= OnTrackedGameProcessExited;
+                _trackedGameProcess.Dispose();
+                _trackedGameProcess = null;
+                return false;
+            }
+
+            return true;
+        }
+        catch
+        {
+            _trackedGameProcess = null;
+            return false;
+        }
     }
 
     private async Task<bool> TryEnableOfflineModeIfAllServersUnavailableAsync()

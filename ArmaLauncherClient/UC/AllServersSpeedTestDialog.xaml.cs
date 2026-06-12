@@ -1,3 +1,4 @@
+﻿using System.Net.Http;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -45,9 +46,13 @@ public partial class AllServersSpeedTestDialog : Window
         _bestServer = null;
         _bestResult = null;
 
-        // Используем только доступные серверы (у которых есть Game)
-        var servers = App.AvailableServers.Where(s => s.HasGame).ToList();
+        // Берём ВСЕ известные серверы, но прямо перед каждым тестом дополнительно
+        // проверяем доступность сервера через /info с коротким таймаутом, потому что
+        // состояние HasGame могло устареть с момента последнего фонового опроса.
+        var servers = App.AvailableServers.ToList();
         var results = new List<(ServerInfo Server, SpeedTestService.SpeedTestResult Result)>();
+
+        using var probeClient = new HttpClient { Timeout = TimeSpan.FromSeconds(1) };
 
         try
         {
@@ -64,20 +69,50 @@ public partial class AllServersSpeedTestDialog : Window
                 var serverPanel = CreateServerResultPanel(server.Name, "Тестирование...", null);
                 ResultsPanel.Children.Add(serverPanel);
 
+                // Быстрая проверка доступности перед тяжёлым спидтестом
+                var (alive, hasGame) = await ProbeServerAvailabilityAsync(probeClient, server, _cts.Token);
+                if (!alive)
+                {
+                    server.HasGame = false;
+                    ResultsPanel.Children.Remove(serverPanel);
+                    var deadPanel = CreateServerResultPanel(server.Name, "Сервер недоступен", new SpeedTestService.SpeedTestResult
+                    {
+                        ServerUrl = server.Url,
+                        Success = false,
+                        Error = "Сервер недоступен"
+                    });
+                    ResultsPanel.Children.Add(deadPanel);
+                    continue;
+                }
+                if (!hasGame)
+                {
+                    server.HasGame = false;
+                    ResultsPanel.Children.Remove(serverPanel);
+                    var noGamePanel = CreateServerResultPanel(server.Name, "На сервере нет игры", new SpeedTestService.SpeedTestResult
+                    {
+                        ServerUrl = server.Url,
+                        Success = false,
+                        Error = "Нет игры на сервере"
+                    });
+                    ResultsPanel.Children.Add(noGamePanel);
+                    continue;
+                }
+                server.HasGame = true;
+
                 // Run the speed test
                 var progress = new Progress<string>(msg =>
                 {
                     StatusText.Text = $"{server.Name}: {msg}";
                 });
-                
+
                 var result = await _speedTestService.RunSpeedTestAsync(server.Url, progress, _cts.Token);
                 results.Add((server, result));
-                
+
                 // Update the panel with results
                 ResultsPanel.Children.Remove(serverPanel);
                 var updatedPanel = CreateServerResultPanel(server.Name, GetResultSummary(result), result);
                 ResultsPanel.Children.Add(updatedPanel);
-                
+
                 // Track best server
                 if (result.Success)
                 {
@@ -119,6 +154,25 @@ public partial class AllServersSpeedTestDialog : Window
             ProgressBar.Visibility = Visibility.Collapsed;
             _cts?.Dispose();
             _cts = null;
+        }
+    }
+
+    private static async Task<(bool alive, bool hasGame)> ProbeServerAvailabilityAsync(
+        HttpClient client, ServerInfo server, CancellationToken ct)
+    {
+        try
+        {
+            using var response = await client.GetAsync($"{server.Url}/info", ct);
+            if (!response.IsSuccessStatusCode)
+                return (false, false);
+
+            var json = await response.Content.ReadAsStringAsync(ct);
+            var hasGame = json.Contains("\"game\"") && !json.Contains("\"game\":null");
+            return (true, hasGame);
+        }
+        catch
+        {
+            return (false, false);
         }
     }
 

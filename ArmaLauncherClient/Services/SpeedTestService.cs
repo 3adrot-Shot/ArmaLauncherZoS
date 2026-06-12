@@ -1,4 +1,4 @@
-using System.Diagnostics;
+п»їusing System.Diagnostics;
 using System.Net.Http;
 using System.Net.NetworkInformation;
 using System.Collections.Concurrent;
@@ -33,7 +33,7 @@ public class SpeedTestService
         public string? Error { get; init; }
         
         public string Summary => Success 
-            ? $"Ping: {PingMs:F0}ms (±{PingJitter:F0}ms) | Download: {DownloadSpeedMBps:F1} MB/s ({DownloadSpeedMbps:F0} Mbps) | {ParallelStreams} streams"
+            ? $"Ping: {PingMs:F0}ms (В±{PingJitter:F0}ms) | Download: {DownloadSpeedMBps:F1} MB/s ({DownloadSpeedMbps:F0} Mbps) | {ParallelStreams} streams"
             : $"Failed: {Error}";
     }
 
@@ -47,12 +47,12 @@ public class SpeedTestService
         try
         {
             // Step 1: Ping test (multiple samples for jitter calculation)
-            progress?.Report("Измерение пинга...");
+            progress?.Report("РР·РјРµСЂРµРЅРёРµ РїРёРЅРіР°...");
             var (pingMs, jitter) = await MeasurePingAsync(baseUrl, ct);
             FileLogger.Log($"SpeedTest: Ping = {pingMs:F1}ms, Jitter = {jitter:F1}ms");
             
             // Step 2: Multi-threaded download test
-            progress?.Report($"Тест скорости ({ParallelStreams} потоков)...");
+            progress?.Report($"РўРµСЃС‚ СЃРєРѕСЂРѕСЃС‚Рё ({ParallelStreams} РїРѕС‚РѕРєРѕРІ)...");
             var (downloadSpeed, bytesDownloaded, duration) = await MeasureDownloadSpeedMultiThreadedAsync(baseUrl, progress, ct);
             
             FileLogger.Log($"SpeedTest: Download = {downloadSpeed:F2} MB/s ({bytesDownloaded / 1024 / 1024} MB in {duration:F1}s, {ParallelStreams} streams)");
@@ -171,7 +171,7 @@ public class SpeedTestService
                 if (elapsed > 0.1)
                 {
                     var speed = currentBytes / elapsed / 1024 / 1024;
-                    progress?.Report($"Тест: {speed:F1} MB/s ({currentBytes / 1024 / 1024} MB, {ParallelStreams} потоков)");
+                    progress?.Report($"РўРµСЃС‚: {speed:F1} MB/s ({currentBytes / 1024 / 1024} MB, {ParallelStreams} РїРѕС‚РѕРєРѕРІ)");
                 }
             }
         }, linkedCts.Token);

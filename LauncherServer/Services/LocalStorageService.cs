@@ -1,4 +1,4 @@
-using System.Collections.Concurrent;
+п»їusing System.Collections.Concurrent;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text.Json;
@@ -23,7 +23,7 @@ public sealed class LocalStorageService : IDisposable
 
     private readonly ConcurrentDictionary<string, ModelInfo> _modelIndex = new();
 
-    // Отдельный индекс для аддонов (модов) с информацией из ServerData.json
+    // РћС‚РґРµР»СЊРЅС‹Р№ РёРЅРґРµРєСЃ РґР»СЏ Р°РґРґРѕРЅРѕРІ (РјРѕРґРѕРІ) СЃ РёРЅС„РѕСЂРјР°С†РёРµР№ РёР· ServerData.json
     private readonly ConcurrentDictionary<string, AddonInfo> _addonIndex = new();
 
     // In-memory chunk cache (key = fullPath)
@@ -41,7 +41,7 @@ public sealed class LocalStorageService : IDisposable
     public string AddonsPath => _addonsPath;
 
     /// <summary>
-    /// Читает версию игры из метаданных exe файла (FileVersionInfo.ProductVersion)
+    /// Р§РёС‚Р°РµС‚ РІРµСЂСЃРёСЋ РёРіСЂС‹ РёР· РјРµС‚Р°РґР°РЅРЅС‹С… exe С„Р°Р№Р»Р° (FileVersionInfo.ProductVersion)
     /// </summary>
     public string? GetGameVersionFromExe(string gamePath)
     {
@@ -68,8 +68,8 @@ public sealed class LocalStorageService : IDisposable
             if (versionInfo.FileMajorPart > 0)
                 return $"{versionInfo.FileMajorPart}.{versionInfo.FileMinorPart}.{versionInfo.FileBuildPart}.{versionInfo.FilePrivatePart}";
 
-            // На Linux/macOS FileVersionInfo не умеет читать ресурсы версии Windows PE,
-            // поэтому парсим PE-файл вручную (кросс-платформенно)
+            // РќР° Linux/macOS FileVersionInfo РЅРµ СѓРјРµРµС‚ С‡РёС‚Р°С‚СЊ СЂРµСЃСѓСЂСЃС‹ РІРµСЂСЃРёРё Windows PE,
+            // РїРѕСЌС‚РѕРјСѓ РїР°СЂСЃРёРј PE-С„Р°Р№Р» РІСЂСѓС‡РЅСѓСЋ (РєСЂРѕСЃСЃ-РїР»Р°С‚С„РѕСЂРјРµРЅРЅРѕ)
             var peVersion = ReadVersionFromPeResource(exePath);
             if (!string.IsNullOrWhiteSpace(peVersion))
             {
@@ -87,9 +87,9 @@ public sealed class LocalStorageService : IDisposable
     }
 
     /// <summary>
-    /// Кросс-платформенное чтение версии из ресурса VS_VERSION_INFO PE-файла.
-    /// Работает на Linux/macOS, где FileVersionInfo не читает Windows-ресурсы.
-    /// Читает поля dwFileVersion из структуры VS_FIXEDFILEINFO.
+    /// РљСЂРѕСЃСЃ-РїР»Р°С‚С„РѕСЂРјРµРЅРЅРѕРµ С‡С‚РµРЅРёРµ РІРµСЂСЃРёРё РёР· СЂРµСЃСѓСЂСЃР° VS_VERSION_INFO PE-С„Р°Р№Р»Р°.
+    /// Р Р°Р±РѕС‚Р°РµС‚ РЅР° Linux/macOS, РіРґРµ FileVersionInfo РЅРµ С‡РёС‚Р°РµС‚ Windows-СЂРµСЃСѓСЂСЃС‹.
+    /// Р§РёС‚Р°РµС‚ РїРѕР»СЏ dwFileVersion РёР· СЃС‚СЂСѓРєС‚СѓСЂС‹ VS_FIXEDFILEINFO.
     /// </summary>
     private string? ReadVersionFromPeResource(string exePath)
     {
@@ -97,7 +97,7 @@ public sealed class LocalStorageService : IDisposable
         {
             var bytes = File.ReadAllBytes(exePath);
 
-            // DOS header: проверяем сигнатуру "MZ" и читаем e_lfanew (offset 0x3C)
+            // DOS header: РїСЂРѕРІРµСЂСЏРµРј СЃРёРіРЅР°С‚СѓСЂСѓ "MZ" Рё С‡РёС‚Р°РµРј e_lfanew (offset 0x3C)
             if (bytes.Length < 0x40 || bytes[0] != 'M' || bytes[1] != 'Z')
                 return null;
 
@@ -116,10 +116,10 @@ public sealed class LocalStorageService : IDisposable
 
             // Magic: 0x10B = PE32, 0x20B = PE32+
             ushort magic = BitConverter.ToUInt16(bytes, optionalHeaderOffset);
-            // Data directories начинаются по-разному для PE32 и PE32+
+            // Data directories РЅР°С‡РёРЅР°СЋС‚СЃСЏ РїРѕ-СЂР°Р·РЅРѕРјСѓ РґР»СЏ PE32 Рё PE32+
             int dataDirectoryOffset = optionalHeaderOffset + (magic == 0x20B ? 112 : 96);
 
-            // Resource directory — индекс 2 в data directories (по 8 байт каждая)
+            // Resource directory вЂ” РёРЅРґРµРєСЃ 2 РІ data directories (РїРѕ 8 Р±Р°Р№С‚ РєР°Р¶РґР°СЏ)
             int resourceDirEntry = dataDirectoryOffset + 2 * 8;
             if (resourceDirEntry + 8 > bytes.Length)
                 return null;
@@ -128,10 +128,10 @@ public sealed class LocalStorageService : IDisposable
             if (resourceRva == 0)
                 return null;
 
-            // Section headers идут сразу после optional header
+            // Section headers РёРґСѓС‚ СЃСЂР°Р·Сѓ РїРѕСЃР»Рµ optional header
             int sectionHeadersOffset = optionalHeaderOffset + sizeOfOptionalHeader;
 
-            // Функция перевода RVA -> файловое смещение
+            // Р¤СѓРЅРєС†РёСЏ РїРµСЂРµРІРѕРґР° RVA -> С„Р°Р№Р»РѕРІРѕРµ СЃРјРµС‰РµРЅРёРµ
             int RvaToOffset(uint rva)
             {
                 for (int i = 0; i < numberOfSections; i++)
@@ -153,8 +153,8 @@ public sealed class LocalStorageService : IDisposable
             if (resourceBase < 0)
                 return null;
 
-            // Ищем сигнатуру VS_FIXEDFILEINFO (0xFEEF04BD) в секции ресурсов.
-            // Это надёжнее, чем полный обход дерева ресурсов.
+            // РС‰РµРј СЃРёРіРЅР°С‚СѓСЂСѓ VS_FIXEDFILEINFO (0xFEEF04BD) РІ СЃРµРєС†РёРё СЂРµСЃСѓСЂСЃРѕРІ.
+            // Р­С‚Рѕ РЅР°РґС‘Р¶РЅРµРµ, С‡РµРј РїРѕР»РЅС‹Р№ РѕР±С…РѕРґ РґРµСЂРµРІР° СЂРµСЃСѓСЂСЃРѕРІ.
             for (int i = resourceBase; i < bytes.Length - 4; i++)
             {
                 if (bytes[i] == 0xBD && bytes[i + 1] == 0x04 && bytes[i + 2] == 0xEF && bytes[i + 3] == 0xFE)
@@ -176,7 +176,7 @@ public sealed class LocalStorageService : IDisposable
                     int priv = (int)(fileVersionLS & 0xFFFF);
 
                     if (major == 0 && minor == 0 && build == 0 && priv == 0)
-                        continue; // пустая запись, ищем дальше
+                        continue; // РїСѓСЃС‚Р°СЏ Р·Р°РїРёСЃСЊ, РёС‰РµРј РґР°Р»СЊС€Рµ
 
                     return $"{major}.{minor}.{build}.{priv}";
                 }
@@ -209,7 +209,7 @@ public sealed class LocalStorageService : IDisposable
         _gamePath = config["Storage:GamePath"] ?? "";
         _addonsPath = config["Storage:AddonsPath"] ?? "";
 
-        // Отдельная папка для чанков (если не указана - чанки только в памяти)
+        // РћС‚РґРµР»СЊРЅР°СЏ РїР°РїРєР° РґР»СЏ С‡Р°РЅРєРѕРІ (РµСЃР»Рё РЅРµ СѓРєР°Р·Р°РЅР° - С‡Р°РЅРєРё С‚РѕР»СЊРєРѕ РІ РїР°РјСЏС‚Рё)
         var chunksPath = config["Storage:ChunksPath"];
         _chunksPath = string.IsNullOrWhiteSpace(chunksPath) ? null : chunksPath;
 
@@ -274,7 +274,7 @@ public sealed class LocalStorageService : IDisposable
 
     private void LoadExistingChunkCaches()
     {
-        // Если ChunksPath не настроен - чанки только в памяти, нечего загружать
+        // Р•СЃР»Рё ChunksPath РЅРµ РЅР°СЃС‚СЂРѕРµРЅ - С‡Р°РЅРєРё С‚РѕР»СЊРєРѕ РІ РїР°РјСЏС‚Рё, РЅРµС‡РµРіРѕ Р·Р°РіСЂСѓР¶Р°С‚СЊ
         if (_chunksPath == null)
         {
             _logger.LogInformation("ChunksPath not configured - chunks will be cached in memory only");
@@ -297,7 +297,7 @@ public sealed class LocalStorageService : IDisposable
                     var data = File.ReadAllBytes(chunkFile);
                     var entry = MessagePackSerializer.Deserialize<ChunkCacheEntry>(data);
 
-                    // Проверяем что исходный файл существует и не изменился
+                    // РџСЂРѕРІРµСЂСЏРµРј С‡С‚Рѕ РёСЃС…РѕРґРЅС‹Р№ С„Р°Р№Р» СЃСѓС‰РµСЃС‚РІСѓРµС‚ Рё РЅРµ РёР·РјРµРЅРёР»СЃСЏ
                     if (!File.Exists(entry.SourcePath))
                     {
                         _logger.LogDebug("  Orphan chunk file (source missing): {File}", chunkFile);
@@ -503,24 +503,24 @@ public sealed class LocalStorageService : IDisposable
     }
 
     /// <summary>
-    /// Возвращает путь к файлу чанков для указанного исходного файла.
-    /// Возвращает null если ChunksPath не настроен (чанки только в памяти).
+    /// Р’РѕР·РІСЂР°С‰Р°РµС‚ РїСѓС‚СЊ Рє С„Р°Р№Р»Сѓ С‡Р°РЅРєРѕРІ РґР»СЏ СѓРєР°Р·Р°РЅРЅРѕРіРѕ РёСЃС…РѕРґРЅРѕРіРѕ С„Р°Р№Р»Р°.
+    /// Р’РѕР·РІСЂР°С‰Р°РµС‚ null РµСЃР»Рё ChunksPath РЅРµ РЅР°СЃС‚СЂРѕРµРЅ (С‡Р°РЅРєРё С‚РѕР»СЊРєРѕ РІ РїР°РјСЏС‚Рё).
     /// </summary>
     private string? GetChunkFilePath(string sourceFilePath)
     {
         if (_chunksPath == null)
         {
-            // Не создаём файлы чанков - только в памяти
+            // РќРµ СЃРѕР·РґР°С‘Рј С„Р°Р№Р»С‹ С‡Р°РЅРєРѕРІ - С‚РѕР»СЊРєРѕ РІ РїР°РјСЏС‚Рё
             return null;
         }
 
-        // Чанки в отдельной папке с сохранением структуры
-        // Создаём уникальный путь на основе хэша полного пути
+        // Р§Р°РЅРєРё РІ РѕС‚РґРµР»СЊРЅРѕР№ РїР°РїРєРµ СЃ СЃРѕС…СЂР°РЅРµРЅРёРµРј СЃС‚СЂСѓРєС‚СѓСЂС‹
+        // РЎРѕР·РґР°С‘Рј СѓРЅРёРєР°Р»СЊРЅС‹Р№ РїСѓС‚СЊ РЅР° РѕСЃРЅРѕРІРµ С…СЌС€Р° РїРѕР»РЅРѕРіРѕ РїСѓС‚Рё
         var hash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(
             System.Text.Encoding.UTF8.GetBytes(sourceFilePath))).Substring(0, 16);
         var fileName = Path.GetFileName(sourceFilePath);
 
-        // Структура: ChunksPath/AB/hash_filename.chunks
+        // РЎС‚СЂСѓРєС‚СѓСЂР°: ChunksPath/AB/hash_filename.chunks
         var subDir = Path.Combine(_chunksPath, hash[..2]);
         Directory.CreateDirectory(subDir);
 
@@ -610,7 +610,7 @@ public sealed class LocalStorageService : IDisposable
     }
 
     /// <summary>
-    /// Сканирует папку игры (если указана в GamePath)
+    /// РЎРєР°РЅРёСЂСѓРµС‚ РїР°РїРєСѓ РёРіСЂС‹ (РµСЃР»Рё СѓРєР°Р·Р°РЅР° РІ GamePath)
     /// </summary>
     public void ScanGameFolder()
     {
@@ -624,13 +624,13 @@ public sealed class LocalStorageService : IDisposable
 
         try
         {
-            // Используем имя папки как modelId
+            // РСЃРїРѕР»СЊР·СѓРµРј РёРјСЏ РїР°РїРєРё РєР°Рє modelId
             var modelId = Path.GetFileName(_gamePath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
 
-            // Читаем версию из exe файла (приоритет)
+            // Р§РёС‚Р°РµРј РІРµСЂСЃРёСЋ РёР· exe С„Р°Р№Р»Р° (РїСЂРёРѕСЂРёС‚РµС‚)
             var version = GetGameVersionFromExe(_gamePath);
 
-            // Fallback на version.txt если exe не найден
+            // Fallback РЅР° version.txt РµСЃР»Рё exe РЅРµ РЅР°Р№РґРµРЅ
             if (string.IsNullOrWhiteSpace(version))
             {
                 var versionFile = Path.Combine(_gamePath, "version.txt");
@@ -681,8 +681,8 @@ public sealed class LocalStorageService : IDisposable
     }
 
     /// <summary>
-    /// Сканирует папку Addons и читает информацию из ServerData.json или meta файла
-    /// Если оба отсутствуют - использует имя папки
+    /// РЎРєР°РЅРёСЂСѓРµС‚ РїР°РїРєСѓ Addons Рё С‡РёС‚Р°РµС‚ РёРЅС„РѕСЂРјР°С†РёСЋ РёР· ServerData.json РёР»Рё meta С„Р°Р№Р»Р°
+    /// Р•СЃР»Рё РѕР±Р° РѕС‚СЃСѓС‚СЃС‚РІСѓСЋС‚ - РёСЃРїРѕР»СЊР·СѓРµС‚ РёРјСЏ РїР°РїРєРё
     /// </summary>
     public void ScanAddonsFolder()
     {
@@ -725,7 +725,7 @@ public sealed class LocalStorageService : IDisposable
                 
                 if (File.Exists(serverDataPath))
                 {
-                    // Приоритет 1: ServerData.json
+                    // РџСЂРёРѕСЂРёС‚РµС‚ 1: ServerData.json
                     _logger.LogInformation("    Found ServerData.json");
                     var parsed = ParseServerDataJson(serverDataPath, folderName);
                     modId = parsed.ModId;
@@ -736,7 +736,7 @@ public sealed class LocalStorageService : IDisposable
                 }
                 else if (File.Exists(metaPath))
                 {
-                    // Приоритет 2: meta файл (без расширения)
+                    // РџСЂРёРѕСЂРёС‚РµС‚ 2: meta С„Р°Р№Р» (Р±РµР· СЂР°СЃС€РёСЂРµРЅРёСЏ)
                     _logger.LogInformation("    Found meta file");
                     var parsed = ParseMetaFile(metaPath, folderName);
                     modId = parsed.ModId;
@@ -747,14 +747,14 @@ public sealed class LocalStorageService : IDisposable
                 }
                 else
                 {
-                    // Приоритет 3: имя папки (формат: Name_ModId)
+                    // РџСЂРёРѕСЂРёС‚РµС‚ 3: РёРјСЏ РїР°РїРєРё (С„РѕСЂРјР°С‚: Name_ModId)
                     _logger.LogInformation("    No ServerData.json or meta - using folder name");
                     modId = ExtractModIdFromFolderName(folderName);
                     name = ExtractNameFromFolderName(folderName);
                     version = "unknown";
                 }
                 
-                // Считаем размер и файлы
+                // РЎС‡РёС‚Р°РµРј СЂР°Р·РјРµСЂ Рё С„Р°Р№Р»С‹
                 long totalSize = 0;
                 int fileCount = 0;
 
@@ -802,7 +802,7 @@ public sealed class LocalStorageService : IDisposable
     }
     
     /// <summary>
-    /// Парсит ServerData.json
+    /// РџР°СЂСЃРёС‚ ServerData.json
     /// </summary>
     private (string ModId, string Name, string Version, string? Changelog, List<AddonDependency>? Dependencies) 
         ParseServerDataJson(string path, string fallbackName)
@@ -844,7 +844,7 @@ public sealed class LocalStorageService : IDisposable
     }
     
     /// <summary>
-    /// Парсит meta файл (без расширения)
+    /// РџР°СЂСЃРёС‚ meta С„Р°Р№Р» (Р±РµР· СЂР°СЃС€РёСЂРµРЅРёСЏ)
     /// </summary>
     private (string ModId, string Name, string Version, string? Changelog, List<AddonDependency>? Dependencies) 
         ParseMetaFile(string path, string fallbackName)
@@ -864,7 +864,7 @@ public sealed class LocalStorageService : IDisposable
                 return (ExtractModIdFromFolderName(fallbackName), ExtractNameFromFolderName(fallbackName), "unknown", null, null);
             }
             
-            // Берём версию из selectedRev или первую в списке
+            // Р‘РµСЂС‘Рј РІРµСЂСЃРёСЋ РёР· selectedRev РёР»Рё РїРµСЂРІСѓСЋ РІ СЃРїРёСЃРєРµ
             string version = "unknown";
             string? changelog = null;
             List<AddonDependency>? dependencies = null;
@@ -902,7 +902,7 @@ public sealed class LocalStorageService : IDisposable
     }
     
     /// <summary>
-    /// Извлекает ModId из имени папки (формат: Name_ModId)
+    /// РР·РІР»РµРєР°РµС‚ ModId РёР· РёРјРµРЅРё РїР°РїРєРё (С„РѕСЂРјР°С‚: Name_ModId)
     /// </summary>
     private static string ExtractModIdFromFolderName(string folderName)
     {
@@ -915,7 +915,7 @@ public sealed class LocalStorageService : IDisposable
     }
     
     /// <summary>
-    /// Извлекает Name из имени папки (формат: Name_ModId)
+    /// РР·РІР»РµРєР°РµС‚ Name РёР· РёРјРµРЅРё РїР°РїРєРё (С„РѕСЂРјР°С‚: Name_ModId)
     /// </summary>
     private static string ExtractNameFromFolderName(string folderName)
     {
@@ -976,12 +976,12 @@ public sealed class LocalStorageService : IDisposable
         return false;
     }
 
-    // Методы для работы с аддонами
+    // РњРµС‚РѕРґС‹ РґР»СЏ СЂР°Р±РѕС‚С‹ СЃ Р°РґРґРѕРЅР°РјРё
     public IEnumerable<AddonInfo> GetAddons() => _addonIndex.Values;
     public AddonInfo? GetAddon(string folderName) => _addonIndex.GetValueOrDefault(folderName);
     
     /// <summary>
-    /// Получает файлы аддона
+    /// РџРѕР»СѓС‡Р°РµС‚ С„Р°Р№Р»С‹ Р°РґРґРѕРЅР°
     /// </summary>
     public List<ModelFileInfo> GetAddonFilesQuick(string folderName)
     {

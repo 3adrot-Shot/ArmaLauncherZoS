@@ -1,4 +1,4 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 
 namespace ArmaLauncherClient.Services;
 
@@ -321,6 +321,7 @@ public class LocalizationManager : INotifyPropertyChanged
             ["status_loaded_servers"] = "Найдено {0} серверов, игроков онлайн: {1}",
             ["status_no_servers"] = "Серверы не найдены",
             ["status_servers_error"] = "Ошибка загрузки серверов",
+            ["status_checking_servers"] = "Проверяем серверы...",
             ["status_no_addons"] = "Нет аддонов для установки",
             ["status_no_addons_verify"] = "Нет аддонов для проверки",
             ["status_no_mods_verify"] = "Нет модов для проверки",
@@ -677,6 +678,7 @@ public class LocalizationManager : INotifyPropertyChanged
             ["status_loaded_servers"] = "Found {0} servers, players online: {1}",
             ["status_no_servers"] = "No servers found",
             ["status_servers_error"] = "Error loading servers",
+            ["status_checking_servers"] = "Checking servers...",
             ["status_no_addons"] = "No addons to install",
             ["status_no_addons_verify"] = "No addons to verify",
             ["status_no_mods_verify"] = "No mods to verify",

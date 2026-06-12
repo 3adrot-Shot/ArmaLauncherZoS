@@ -1,9 +1,9 @@
-using MessagePack;
+п»їusing MessagePack;
 
 namespace LauncherServer.Models;
 
 /// <summary>
-/// Информация о чанке файла
+/// РРЅС„РѕСЂРјР°С†РёСЏ Рѕ С‡Р°РЅРєРµ С„Р°Р№Р»Р°
 /// </summary>
 [MessagePackObject]
 public class FileChunkInfo

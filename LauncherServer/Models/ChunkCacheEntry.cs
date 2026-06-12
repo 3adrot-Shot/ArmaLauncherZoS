@@ -1,33 +1,33 @@
-using MessagePack;
+п»їusing MessagePack;
 
 namespace LauncherServer.Models;
 
 /// <summary>
-/// Запись кэша чанков с информацией об исходном файле
+/// Р—Р°РїРёСЃСЊ РєСЌС€Р° С‡Р°РЅРєРѕРІ СЃ РёРЅС„РѕСЂРјР°С†РёРµР№ РѕР± РёСЃС…РѕРґРЅРѕРј С„Р°Р№Р»Рµ
 /// </summary>
 [MessagePackObject]
 public sealed class ChunkCacheEntry
 {
     /// <summary>
-    /// Полный путь к исходному файлу
+    /// РџРѕР»РЅС‹Р№ РїСѓС‚СЊ Рє РёСЃС…РѕРґРЅРѕРјСѓ С„Р°Р№Р»Сѓ
     /// </summary>
     [Key(0)]
     public required string SourcePath { get; init; }
     
     /// <summary>
-    /// Размер исходного файла
+    /// Р Р°Р·РјРµСЂ РёСЃС…РѕРґРЅРѕРіРѕ С„Р°Р№Р»Р°
     /// </summary>
     [Key(1)]
     public required long SourceSize { get; init; }
     
     /// <summary>
-    /// Время последнего изменения исходного файла (UTC ticks)
+    /// Р’СЂРµРјСЏ РїРѕСЃР»РµРґРЅРµРіРѕ РёР·РјРµРЅРµРЅРёСЏ РёСЃС…РѕРґРЅРѕРіРѕ С„Р°Р№Р»Р° (UTC ticks)
     /// </summary>
     [Key(2)]
     public required long SourceModifiedUtc { get; init; }
     
     /// <summary>
-    /// Список чанков
+    /// РЎРїРёСЃРѕРє С‡Р°РЅРєРѕРІ
     /// </summary>
     [Key(3)]
     public required List<FileChunkInfo> Chunks { get; init; }

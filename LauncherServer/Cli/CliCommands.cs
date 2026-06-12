@@ -1,4 +1,4 @@
-using System.CommandLine;
+﻿using System.CommandLine;
 using System.Diagnostics;
 using System.IO;
 using LauncherServer.Services;

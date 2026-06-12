@@ -1,4 +1,4 @@
-using System.Buffers;
+п»їusing System.Buffers;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.IO;
@@ -55,13 +55,13 @@ public sealed class UpdateManager : IAsyncDisposable
     public string ServerUrl => _baseUrl;
     public DownloadMode Mode { get; set; } = DownloadMode.Phased;
     /// <summary>
-    /// Мгновенная установка: начинать скачивание+сборку каждого файла сразу после его анализа,
-    /// не дожидаясь окончания анализа всех файлов.
+    /// РњРіРЅРѕРІРµРЅРЅР°СЏ СѓСЃС‚Р°РЅРѕРІРєР°: РЅР°С‡РёРЅР°С‚СЊ СЃРєР°С‡РёРІР°РЅРёРµ+СЃР±РѕСЂРєСѓ РєР°Р¶РґРѕРіРѕ С„Р°Р№Р»Р° СЃСЂР°Р·Сѓ РїРѕСЃР»Рµ РµРіРѕ Р°РЅР°Р»РёР·Р°,
+    /// РЅРµ РґРѕР¶РёРґР°СЏСЃСЊ РѕРєРѕРЅС‡Р°РЅРёСЏ Р°РЅР°Р»РёР·Р° РІСЃРµС… С„Р°Р№Р»РѕРІ.
     /// </summary>
     public bool InstantInstall { get; set; } = false;
     public string GameInstallRoot => _gameDirectory;
     public string ModsInstallRoot => _modsDirectory;
-    public string InstallRoot => _gameDirectory; // Для совместимости
+    public string InstallRoot => _gameDirectory; // Р”Р»СЏ СЃРѕРІРјРµСЃС‚РёРјРѕСЃС‚Рё
 
     public UpdateManager(HttpClient httpClient, DeduplicationCache cache, CryptoService crypto, string baseUrl, string? modelsDirectory = null)
     {
@@ -134,12 +134,12 @@ public sealed class UpdateManager : IAsyncDisposable
         FileLogger.Log($"[CONFIG] Mods path reset: {oldPath} -> {_modsDirectory}");
     }
 
-    // Для совместимости
+    // Р”Р»СЏ СЃРѕРІРјРµСЃС‚РёРјРѕСЃС‚Рё
     public void SetInstallRoot(string path) => SetGamePath(path);
     public void ResetInstallRoot() => ResetGamePath();
 
     /// <summary>
-    /// Читает версию игры из метаданных exe файла (FileVersionInfo.ProductVersion)
+    /// Р§РёС‚Р°РµС‚ РІРµСЂСЃРёСЋ РёРіСЂС‹ РёР· РјРµС‚Р°РґР°РЅРЅС‹С… exe С„Р°Р№Р»Р° (FileVersionInfo.ProductVersion)
     /// </summary>
     public static string? GetGameVersionFromExe(string gamePath)
     {
@@ -232,7 +232,7 @@ public sealed class UpdateManager : IAsyncDisposable
     }
 
     /// <summary>
-    /// Проверяет существующую установку игры по указанному пути
+    /// РџСЂРѕРІРµСЂСЏРµС‚ СЃСѓС‰РµСЃС‚РІСѓСЋС‰СѓСЋ СѓСЃС‚Р°РЅРѕРІРєСѓ РёРіСЂС‹ РїРѕ СѓРєР°Р·Р°РЅРЅРѕРјСѓ РїСѓС‚Рё
     /// </summary>
     public async Task<ExistingGameInfo?> DetectExistingGameAsync(string gamePath, CancellationToken ct = default)
     {
@@ -244,10 +244,10 @@ public sealed class UpdateManager : IAsyncDisposable
             return null;
         }
 
-        // Сначала пробуем читать версию из exe файла (приоритет)
+        // РЎРЅР°С‡Р°Р»Р° РїСЂРѕР±СѓРµРј С‡РёС‚Р°С‚СЊ РІРµСЂСЃРёСЋ РёР· exe С„Р°Р№Р»Р° (РїСЂРёРѕСЂРёС‚РµС‚)
         string? installedVersion = GetGameVersionFromExe(gamePath);
 
-        // Fallback на .version файл если exe не найден или версия не читается
+        // Fallback РЅР° .version С„Р°Р№Р» РµСЃР»Рё exe РЅРµ РЅР°Р№РґРµРЅ РёР»Рё РІРµСЂСЃРёСЏ РЅРµ С‡РёС‚Р°РµС‚СЃСЏ
         if (installedVersion == null)
         {
             var versionFile = Path.Combine(gamePath, ".version");
@@ -258,11 +258,11 @@ public sealed class UpdateManager : IAsyncDisposable
             }
         }
 
-        // Проверяем наличие КОНКРЕТНЫХ файлов игры Arma Reforger
+        // РџСЂРѕРІРµСЂСЏРµРј РЅР°Р»РёС‡РёРµ РљРћРќРљР Р•РўРќР«РҐ С„Р°Р№Р»РѕРІ РёРіСЂС‹ Arma Reforger
         var gameExe = Path.Combine(gamePath, "ArmaReforgerSteam.exe");
         var hasGameExe = File.Exists(gameExe);
 
-        // Или проверяем структуру папок игры (addons/data с pak файлами)
+        // РР»Рё РїСЂРѕРІРµСЂСЏРµРј СЃС‚СЂСѓРєС‚СѓСЂСѓ РїР°РїРѕРє РёРіСЂС‹ (addons/data СЃ pak С„Р°Р№Р»Р°РјРё)
         var addonsDataPath = Path.Combine(gamePath, "addons", "data");
         var hasGameStructure = Directory.Exists(addonsDataPath) && 
                                Directory.GetFiles(addonsDataPath, "*.pak").Length > 0;
@@ -277,11 +277,11 @@ public sealed class UpdateManager : IAsyncDisposable
             return null;
         }
 
-        // Получаем инфо о последней версии с сервера (тоже должна читаться из exe на сервере)
+        // РџРѕР»СѓС‡Р°РµРј РёРЅС„Рѕ Рѕ РїРѕСЃР»РµРґРЅРµР№ РІРµСЂСЃРёРё СЃ СЃРµСЂРІРµСЂР° (С‚РѕР¶Рµ РґРѕР»Р¶РЅР° С‡РёС‚Р°С‚СЊСЃСЏ РёР· exe РЅР° СЃРµСЂРІРµСЂРµ)
         var serverInfo = await GetGameInfoAsync(ct);
         var latestVersion = serverInfo?.Version;
 
-        // Сравниваем версии
+        // РЎСЂР°РІРЅРёРІР°РµРј РІРµСЂСЃРёРё
         var needsUpdate = installedVersion == null || 
                          (latestVersion != null && installedVersion != latestVersion);
 
@@ -305,14 +305,14 @@ public sealed class UpdateManager : IAsyncDisposable
     }
 
     /// <summary>
-    /// Определяет, является ли модель игрой или модом
+    /// РћРїСЂРµРґРµР»СЏРµС‚, СЏРІР»СЏРµС‚СЃСЏ Р»Рё РјРѕРґРµР»СЊ РёРіСЂРѕР№ РёР»Рё РјРѕРґРѕРј
     /// </summary>
     public bool IsGameModel(string modelId) => modelId.StartsWith(GameIdPrefix, StringComparison.OrdinalIgnoreCase) 
                                               || modelId.Equals("arma-reforger", StringComparison.OrdinalIgnoreCase)
                                               || modelId.Equals("fullgame", StringComparison.OrdinalIgnoreCase);
 
     /// <summary>
-    /// Возвращает путь установки для конкретной модели
+    /// Р’РѕР·РІСЂР°С‰Р°РµС‚ РїСѓС‚СЊ СѓСЃС‚Р°РЅРѕРІРєРё РґР»СЏ РєРѕРЅРєСЂРµС‚РЅРѕР№ РјРѕРґРµР»Рё
     /// </summary>
     public string GetInstallPath(string modelId)
     {
@@ -372,7 +372,7 @@ public sealed class UpdateManager : IAsyncDisposable
     }
 
     /// <summary>
-    /// Получает список аддонов (модов) с сервера
+    /// РџРѕР»СѓС‡Р°РµС‚ СЃРїРёСЃРѕРє Р°РґРґРѕРЅРѕРІ (РјРѕРґРѕРІ) СЃ СЃРµСЂРІРµСЂР°
     /// </summary>
     public async Task<List<ServerAddonInfo>> GetAddonsAsync(CancellationToken ct = default)
     {
@@ -394,7 +394,7 @@ public sealed class UpdateManager : IAsyncDisposable
     }
 
     /// <summary>
-    /// Получает детали аддона с сервера
+    /// РџРѕР»СѓС‡Р°РµС‚ РґРµС‚Р°Р»Рё Р°РґРґРѕРЅР° СЃ СЃРµСЂРІРµСЂР°
     /// </summary>
     public async Task<ServerAddonDetails?> GetAddonDetailsAsync(string folderId, CancellationToken ct = default)
     {
@@ -415,13 +415,13 @@ public sealed class UpdateManager : IAsyncDisposable
     }
 
     /// <summary>
-    /// Проверяет установку аддона - читает версию из meta или ServerData.json файла
+    /// РџСЂРѕРІРµСЂСЏРµС‚ СѓСЃС‚Р°РЅРѕРІРєСѓ Р°РґРґРѕРЅР° - С‡РёС‚Р°РµС‚ РІРµСЂСЃРёСЋ РёР· meta РёР»Рё ServerData.json С„Р°Р№Р»Р°
     /// </summary>
     public UpdateCheckResult CheckAddonInstallation(string folderId, string latestVersion)
     {
         var addonDir = Path.Combine(_modsDirectory, folderId);
 
-        // Проверяем существует ли папка
+        // РџСЂРѕРІРµСЂСЏРµРј СЃСѓС‰РµСЃС‚РІСѓРµС‚ Р»Рё РїР°РїРєР°
         if (!Directory.Exists(addonDir))
         {
             return new UpdateCheckResult
@@ -434,12 +434,12 @@ public sealed class UpdateManager : IAsyncDisposable
             };
         }
 
-        // Читаем версию из мета-файлов мода (как на сервере)
+        // Р§РёС‚Р°РµРј РІРµСЂСЃРёСЋ РёР· РјРµС‚Р°-С„Р°Р№Р»РѕРІ РјРѕРґР° (РєР°Рє РЅР° СЃРµСЂРІРµСЂРµ)
         var installedVersion = ReadAddonVersion(addonDir);
 
         if (installedVersion == null)
         {
-            // Папка есть но файлов мода нет
+            // РџР°РїРєР° РµСЃС‚СЊ РЅРѕ С„Р°Р№Р»РѕРІ РјРѕРґР° РЅРµС‚
             return new UpdateCheckResult
             {
                 ModelId = folderId,
@@ -450,7 +450,7 @@ public sealed class UpdateManager : IAsyncDisposable
             };
         }
 
-        // Сравниваем версии - обновление только если серверная новее
+        // РЎСЂР°РІРЅРёРІР°РµРј РІРµСЂСЃРёРё - РѕР±РЅРѕРІР»РµРЅРёРµ С‚РѕР»СЊРєРѕ РµСЃР»Рё СЃРµСЂРІРµСЂРЅР°СЏ РЅРѕРІРµРµ
         var updateAvailable = false;
         if (installedVersion != latestVersion)
         {
@@ -474,11 +474,11 @@ public sealed class UpdateManager : IAsyncDisposable
     }
 
     /// <summary>
-    /// Читает версию аддона из meta файла или ServerData.json
+    /// Р§РёС‚Р°РµС‚ РІРµСЂСЃРёСЋ Р°РґРґРѕРЅР° РёР· meta С„Р°Р№Р»Р° РёР»Рё ServerData.json
     /// </summary>
     private string? ReadAddonVersion(string addonDir)
     {
-        // 1. Пробуем прочитать из файла "meta" (без расширения)
+        // 1. РџСЂРѕР±СѓРµРј РїСЂРѕС‡РёС‚Р°С‚СЊ РёР· С„Р°Р№Р»Р° "meta" (Р±РµР· СЂР°СЃС€РёСЂРµРЅРёСЏ)
         var metaPath = Path.Combine(addonDir, "meta");
         if (File.Exists(metaPath))
         {
@@ -507,7 +507,7 @@ public sealed class UpdateManager : IAsyncDisposable
             }
         }
 
-        // 2. Пробуем прочитать из ServerData.json
+        // 2. РџСЂРѕР±СѓРµРј РїСЂРѕС‡РёС‚Р°С‚СЊ РёР· ServerData.json
         var serverDataPath = Path.Combine(addonDir, "ServerData.json");
         if (File.Exists(serverDataPath))
         {
@@ -530,20 +530,20 @@ public sealed class UpdateManager : IAsyncDisposable
             }
         }
 
-        // 3. Проверяем есть ли вообще файлы мода
+        // 3. РџСЂРѕРІРµСЂСЏРµРј РµСЃС‚СЊ Р»Рё РІРѕРѕР±С‰Рµ С„Р°Р№Р»С‹ РјРѕРґР°
         var hasFiles = Directory.GetFiles(addonDir, "*", SearchOption.AllDirectories)
             .Any(f => !f.EndsWith(".chunks"));
 
         if (hasFiles)
         {
-            // Файлы есть но версия неизвестна
+            // Р¤Р°Р№Р»С‹ РµСЃС‚СЊ РЅРѕ РІРµСЂСЃРёСЏ РЅРµРёР·РІРµСЃС‚РЅР°
             return "unknown";
         }
 
         return null;
     }
 
-    // Модели для парсинга meta файла
+    // РњРѕРґРµР»Рё РґР»СЏ РїР°СЂСЃРёРЅРіР° meta С„Р°Р№Р»Р°
     private class MetaFileWrapper
     {
         [JsonPropertyName("meta")]
@@ -565,7 +565,7 @@ public sealed class UpdateManager : IAsyncDisposable
         public string Version { get; set; } = "";
     }
 
-    // Модели для парсинга ServerData.json
+    // РњРѕРґРµР»Рё РґР»СЏ РїР°СЂСЃРёРЅРіР° ServerData.json
     private class ServerDataInfo
     {
         [JsonPropertyName("revision")]
@@ -579,7 +579,7 @@ public sealed class UpdateManager : IAsyncDisposable
     }
 
     /// <summary>
-    /// Устанавливает или обновляет аддон (с поддержкой multi-connection download как для игры)
+    /// РЈСЃС‚Р°РЅР°РІР»РёРІР°РµС‚ РёР»Рё РѕР±РЅРѕРІР»СЏРµС‚ Р°РґРґРѕРЅ (СЃ РїРѕРґРґРµСЂР¶РєРѕР№ multi-connection download РєР°Рє РґР»СЏ РёРіСЂС‹)
     /// </summary>
     public async Task<InstallResult> InstallAddonAsync(string folderId, string version, CancellationToken ct = default)
     {
@@ -687,7 +687,7 @@ public sealed class UpdateManager : IAsyncDisposable
                 try { Directory.Delete(cacheDir, true); } catch { }
                 try { if (Directory.Exists(tempDir)) Directory.Delete(tempDir, true); } catch { }
 
-                // Читаем актуальную версию из файлов мода
+                // Р§РёС‚Р°РµРј Р°РєС‚СѓР°Р»СЊРЅСѓСЋ РІРµСЂСЃРёСЋ РёР· С„Р°Р№Р»РѕРІ РјРѕРґР°
                 var inplaceVersion = ReadAddonVersion(addonDir) ?? version;
                 globalSw.Stop();
 
@@ -730,7 +730,7 @@ public sealed class UpdateManager : IAsyncDisposable
             FileLogger.Log($"[FINALIZE] Performing atomic directory swap...");
             await PerformAtomicSwapAsync(addonDir, tempDir, linkedCt);
 
-            // Читаем актуальную версию из файлов мода (не используем .version)
+            // Р§РёС‚Р°РµРј Р°РєС‚СѓР°Р»СЊРЅСѓСЋ РІРµСЂСЃРёСЋ РёР· С„Р°Р№Р»РѕРІ РјРѕРґР° (РЅРµ РёСЃРїРѕР»СЊР·СѓРµРј .version)
             var actualVersion = ReadAddonVersion(addonDir) ?? version;
             globalSw.Stop();
 
@@ -1029,7 +1029,7 @@ public sealed class UpdateManager : IAsyncDisposable
     }
 
     /// <summary>
-    /// Проверяет установку аддона
+    /// РџСЂРѕРІРµСЂСЏРµС‚ СѓСЃС‚Р°РЅРѕРІРєСѓ Р°РґРґРѕРЅР°
     /// </summary>
     public async Task<VerifyResult> VerifyAddonAsync(string folderId, CancellationToken ct = default)
     {
@@ -1037,7 +1037,7 @@ public sealed class UpdateManager : IAsyncDisposable
 
         var addonDir = Path.Combine(_modsDirectory, folderId);
 
-        // Проверяем существует ли папка с файлами
+        // РџСЂРѕРІРµСЂСЏРµРј СЃСѓС‰РµСЃС‚РІСѓРµС‚ Р»Рё РїР°РїРєР° СЃ С„Р°Р№Р»Р°РјРё
         if (!Directory.Exists(addonDir))
         {
             FileLogger.Log($"[ADDON-VERIFY] Not installed (directory not found)");
@@ -1082,11 +1082,11 @@ public sealed class UpdateManager : IAsyncDisposable
     }
 
     /// <summary>
-    /// Проверяет, является ли ID аддоном (не игрой)
+    /// РџСЂРѕРІРµСЂСЏРµС‚, СЏРІР»СЏРµС‚СЃСЏ Р»Рё ID Р°РґРґРѕРЅРѕРј (РЅРµ РёРіСЂРѕР№)
     /// </summary>
     public bool IsAddon(string id)
     {
-        // Аддоны имеют формат Name_ModId (с подчёркиванием и hex ID)
+        // РђРґРґРѕРЅС‹ РёРјРµСЋС‚ С„РѕСЂРјР°С‚ Name_ModId (СЃ РїРѕРґС‡С‘СЂРєРёРІР°РЅРёРµРј Рё hex ID)
         return id.Contains('_') && !IsGameModel(id);
     }
 
@@ -1133,18 +1133,18 @@ public sealed class UpdateManager : IAsyncDisposable
         var installed = GetInstalledVersion(modelId);
         var details = await GetModelDetailsAsync(modelId, ct);
 
-        // Обновление нужно только если серверная версия НОВЕЕ локальной
+        // РћР±РЅРѕРІР»РµРЅРёРµ РЅСѓР¶РЅРѕ С‚РѕР»СЊРєРѕ РµСЃР»Рё СЃРµСЂРІРµСЂРЅР°СЏ РІРµСЂСЃРёСЏ РќРћР’Р•Р• Р»РѕРєР°Р»СЊРЅРѕР№
         var updateAvailable = false;
         if (installed == null)
         {
-            // Не установлено - нужна установка
+            // РќРµ СѓСЃС‚Р°РЅРѕРІР»РµРЅРѕ - РЅСѓР¶РЅР° СѓСЃС‚Р°РЅРѕРІРєР°
             updateAvailable = true;
         }
         else if (details?.Version != null && installed != details.Version)
         {
-            // Версии разные - сравниваем какая новее
+            // Р’РµСЂСЃРёРё СЂР°Р·РЅС‹Рµ - СЃСЂР°РІРЅРёРІР°РµРј РєР°РєР°СЏ РЅРѕРІРµРµ
             var comparison = CompareVersions(details.Version, installed);
-            updateAvailable = comparison > 0; // Серверная новее локальной
+            updateAvailable = comparison > 0; // РЎРµСЂРІРµСЂРЅР°СЏ РЅРѕРІРµРµ Р»РѕРєР°Р»СЊРЅРѕР№
             FileLogger.Log($"[CHECK] Version comparison: server={details.Version} vs local={installed}, result={comparison}");
         }
 
@@ -1213,13 +1213,13 @@ public sealed class UpdateManager : IAsyncDisposable
             _speedSamples.Clear();
             _currentSpeed = 0;
 
-            // ? INSTANT INSTALL: конвейерный анализ+скачивание.
-            // Как только файл проанализирован — он сразу начинает скачиваться, пока анализируется следующий.
-            // Применяется только при обновлении (есть существующая папка), т.к. именно chunk-анализ тормозит старт.
+            // ? INSTANT INSTALL: РєРѕРЅРІРµР№РµСЂРЅС‹Р№ Р°РЅР°Р»РёР·+СЃРєР°С‡РёРІР°РЅРёРµ.
+            // РљР°Рє С‚РѕР»СЊРєРѕ С„Р°Р№Р» РїСЂРѕР°РЅР°Р»РёР·РёСЂРѕРІР°РЅ вЂ” РѕРЅ СЃСЂР°Р·Сѓ РЅР°С‡РёРЅР°РµС‚ СЃРєР°С‡РёРІР°С‚СЊСЃСЏ, РїРѕРєР° Р°РЅР°Р»РёР·РёСЂСѓРµС‚СЃСЏ СЃР»РµРґСѓСЋС‰РёР№.
+            // РџСЂРёРјРµРЅСЏРµС‚СЃСЏ С‚РѕР»СЊРєРѕ РїСЂРё РѕР±РЅРѕРІР»РµРЅРёРё (РµСЃС‚СЊ СЃСѓС‰РµСЃС‚РІСѓСЋС‰Р°СЏ РїР°РїРєР°), С‚.Рє. РёРјРµРЅРЅРѕ chunk-Р°РЅР°Р»РёР· С‚РѕСЂРјРѕР·РёС‚ СЃС‚Р°СЂС‚.
             if (InstantInstall && existingDir != null)
             {
                 FileLogger.Log($"");
-                FileLogger.Log($"??? INSTANT INSTALL MODE — pipelined analyze+download ???");
+                FileLogger.Log($"??? INSTANT INSTALL MODE вЂ” pipelined analyze+download ???");
                 await InstallInPlaceInstantAsync(modelId, version, files, existingDir, modelDir, useDeltaPatching, linkedCt);
 
                 try { Directory.Delete(cacheDir, true); } catch { }
@@ -1271,14 +1271,14 @@ public sealed class UpdateManager : IAsyncDisposable
             FileLogger.Log($"  Delta update:      {deltaCount} files");
             FileLogger.Log($"  Total to download: {FormatBytes(totalToDownload)}");
 
-            // FAST PATH: Если все файлы уже на месте и ничего не нужно качать - просто обновляем версию
+            // FAST PATH: Р•СЃР»Рё РІСЃРµ С„Р°Р№Р»С‹ СѓР¶Рµ РЅР° РјРµСЃС‚Рµ Рё РЅРёС‡РµРіРѕ РЅРµ РЅСѓР¶РЅРѕ РєР°С‡Р°С‚СЊ - РїСЂРѕСЃС‚Рѕ РѕР±РЅРѕРІР»СЏРµРј РІРµСЂСЃРёСЋ
             if (fullDownloadCount == 0 && deltaCount == 0 && copyCount == files.Count && existingDir != null)
             {
                 FileLogger.Log($"");
                 FileLogger.Log($"??? ALL FILES UP TO DATE - FAST PATH ???");
                 FileLogger.Log($"[FAST] All {copyCount} files match, skipping copy/assembly");
 
-                // Для игры - читаем версию из exe (она актуальнее чем с сервера)
+                // Р”Р»СЏ РёРіСЂС‹ - С‡РёС‚Р°РµРј РІРµСЂСЃРёСЋ РёР· exe (РѕРЅР° Р°РєС‚СѓР°Р»СЊРЅРµРµ С‡РµРј СЃ СЃРµСЂРІРµСЂР°)
                 var verifiedVersion = version;
                 if (IsGameModel(modelId))
                 {
@@ -1289,11 +1289,11 @@ public sealed class UpdateManager : IAsyncDisposable
                     }
                 }
 
-                // Просто обновляем файл версии
+                // РџСЂРѕСЃС‚Рѕ РѕР±РЅРѕРІР»СЏРµРј С„Р°Р№Р» РІРµСЂСЃРёРё
                 SaveInstalledVersion(modelId, verifiedVersion);
                 globalSw.Stop();
 
-                // Удаляем temp директорию если создали
+                // РЈРґР°Р»СЏРµРј temp РґРёСЂРµРєС‚РѕСЂРёСЋ РµСЃР»Рё СЃРѕР·РґР°Р»Рё
                 try { if (Directory.Exists(tempDir)) Directory.Delete(tempDir, true); } catch { }
 
                 FileLogger.Log($"");
@@ -1309,8 +1309,8 @@ public sealed class UpdateManager : IAsyncDisposable
                 return new InstallResult { Success = true, ModelId = modelId, Version = verifiedVersion, InstallPath = modelDir };
             }
 
-            // IN-PLACE UPDATE PATH: Есть существующая установка - обновляем только изменённые файлы на месте
-            // Работает когда есть delta и/или full download, но большинство файлов не изменилось
+            // IN-PLACE UPDATE PATH: Р•СЃС‚СЊ СЃСѓС‰РµСЃС‚РІСѓСЋС‰Р°СЏ СѓСЃС‚Р°РЅРѕРІРєР° - РѕР±РЅРѕРІР»СЏРµРј С‚РѕР»СЊРєРѕ РёР·РјРµРЅС‘РЅРЅС‹Рµ С„Р°Р№Р»С‹ РЅР° РјРµСЃС‚Рµ
+            // Р Р°Р±РѕС‚Р°РµС‚ РєРѕРіРґР° РµСЃС‚СЊ delta Рё/РёР»Рё full download, РЅРѕ Р±РѕР»СЊС€РёРЅСЃС‚РІРѕ С„Р°Р№Р»РѕРІ РЅРµ РёР·РјРµРЅРёР»РѕСЃСЊ
             if (existingDir != null && copyCount > 0 && (deltaCount > 0 || fullDownloadCount > 0))
             {
                 FileLogger.Log($"");
@@ -1327,11 +1327,11 @@ public sealed class UpdateManager : IAsyncDisposable
                 sw.Stop();
                 globalSw.Stop();
                 
-                // Очистка кэша
+                // РћС‡РёСЃС‚РєР° РєСЌС€Р°
                 try { Directory.Delete(cacheDir, true); } catch { }
                 try { if (Directory.Exists(tempDir)) Directory.Delete(tempDir, true); } catch { }
 
-                // Для игры - читаем версию из exe (она актуальнее чем с сервера)
+                // Р”Р»СЏ РёРіСЂС‹ - С‡РёС‚Р°РµРј РІРµСЂСЃРёСЋ РёР· exe (РѕРЅР° Р°РєС‚СѓР°Р»СЊРЅРµРµ С‡РµРј СЃ СЃРµСЂРІРµСЂР°)
                 var inplaceVersion = version;
                 if (IsGameModel(modelId))
                 {
@@ -1360,7 +1360,7 @@ public sealed class UpdateManager : IAsyncDisposable
                 return new InstallResult { Success = true, ModelId = modelId, Version = inplaceVersion, InstallPath = modelDir };
             }
 
-            // FULL INSTALL PATH: Новая установка - нужен atomic swap
+            // FULL INSTALL PATH: РќРѕРІР°СЏ СѓСЃС‚Р°РЅРѕРІРєР° - РЅСѓР¶РµРЅ atomic swap
             FileLogger.Log($"");
             FileLogger.Log($"? PHASE 2: DOWNLOADING (FULL INSTALL) ?");
             var swFull = Stopwatch.StartNew();
@@ -1388,16 +1388,16 @@ public sealed class UpdateManager : IAsyncDisposable
 
             try { Directory.Delete(cacheDir, true); } catch { }
 
-            // Освобождаем файловые дескрипторы перед перемещением
+            // РћСЃРІРѕР±РѕР¶РґР°РµРј С„Р°Р№Р»РѕРІС‹Рµ РґРµСЃРєСЂРёРїС‚РѕСЂС‹ РїРµСЂРµРґ РїРµСЂРµРјРµС‰РµРЅРёРµРј
             GC.Collect();
             GC.WaitForPendingFinalizers();
-            await Task.Delay(100, linkedCt); // Даём Windows время освободить дескрипторы
+            await Task.Delay(100, linkedCt); // Р”Р°С‘Рј Windows РІСЂРµРјСЏ РѕСЃРІРѕР±РѕРґРёС‚СЊ РґРµСЃРєСЂРёРїС‚РѕСЂС‹
 
-            // Atomic swap с retry логикой
+            // Atomic swap СЃ retry Р»РѕРіРёРєРѕР№
             FileLogger.Log($"[FINALIZE] Performing atomic directory swap...");
             await PerformAtomicSwapAsync(modelDir, tempDir, linkedCt);
 
-            // Для игры - читаем версию из exe (она актуальнее чем с сервера)
+            // Р”Р»СЏ РёРіСЂС‹ - С‡РёС‚Р°РµРј РІРµСЂСЃРёСЋ РёР· exe (РѕРЅР° Р°РєС‚СѓР°Р»СЊРЅРµРµ С‡РµРј СЃ СЃРµСЂРІРµСЂР°)
             var actualVersion = version;
             if (IsGameModel(modelId))
             {
@@ -1444,7 +1444,7 @@ public sealed class UpdateManager : IAsyncDisposable
     }
 
     /// <summary>
-    /// Выполняет atomic swap директорий с retry логикой для обхода блокировок файлов
+    /// Р’С‹РїРѕР»РЅСЏРµС‚ atomic swap РґРёСЂРµРєС‚РѕСЂРёР№ СЃ retry Р»РѕРіРёРєРѕР№ РґР»СЏ РѕР±С…РѕРґР° Р±Р»РѕРєРёСЂРѕРІРѕРє С„Р°Р№Р»РѕРІ
     /// </summary>
     private async Task PerformAtomicSwapAsync(string targetDir, string tempDir, CancellationToken ct)
     {
@@ -1455,22 +1455,22 @@ public sealed class UpdateManager : IAsyncDisposable
         {
             var oldDir = targetDir + ".old";
             
-            // Удаляем старую .old папку если есть
+            // РЈРґР°Р»СЏРµРј СЃС‚Р°СЂСѓСЋ .old РїР°РїРєСѓ РµСЃР»Рё РµСЃС‚СЊ
             if (Directory.Exists(oldDir))
             {
                 FileLogger.Log($"  Deleting old backup...");
                 await RetryDeleteDirectoryAsync(oldDir, maxRetries, retryDelayMs, ct);
             }
             
-            // Перемещаем существующую в .old
+            // РџРµСЂРµРјРµС‰Р°РµРј СЃСѓС‰РµСЃС‚РІСѓСЋС‰СѓСЋ РІ .old
             FileLogger.Log($"  Moving existing -> .old");
             await RetryMoveDirectoryAsync(targetDir, oldDir, maxRetries, retryDelayMs, ct);
             
-            // Перемещаем temp в target
+            // РџРµСЂРµРјРµС‰Р°РµРј temp РІ target
             FileLogger.Log($"  Moving temp -> target");
             Directory.Move(tempDir, targetDir);
             
-            // Удаляем .old
+            // РЈРґР°Р»СЏРµРј .old
             FileLogger.Log($"  Deleting .old");
             _ = Task.Run(async () => {
                 try { await RetryDeleteDirectoryAsync(oldDir, maxRetries, retryDelayMs, CancellationToken.None); }
@@ -1522,7 +1522,7 @@ public sealed class UpdateManager : IAsyncDisposable
             }
             catch (UnauthorizedAccessException) when (attempt < maxRetries)
             {
-                // Попробуем сбросить атрибуты файлов
+                // РџРѕРїСЂРѕР±СѓРµРј СЃР±СЂРѕСЃРёС‚СЊ Р°С‚СЂРёР±СѓС‚С‹ С„Р°Р№Р»РѕРІ
                 try
                 {
                     foreach (var file in Directory.GetFiles(path, "*", SearchOption.AllDirectories))
@@ -1543,8 +1543,8 @@ public sealed class UpdateManager : IAsyncDisposable
         var plans = new List<FilePlan>();
         var serverChunksCache = new ConcurrentDictionary<string, List<ServerChunkInfo>>();
         
-        // Сначала проверяем размеры файлов - если размер совпадает, чанки не нужны
-        // Ищем только файлы где размер НЕ совпадает для delta-анализа
+        // РЎРЅР°С‡Р°Р»Р° РїСЂРѕРІРµСЂСЏРµРј СЂР°Р·РјРµСЂС‹ С„Р°Р№Р»РѕРІ - РµСЃР»Рё СЂР°Р·РјРµСЂ СЃРѕРІРїР°РґР°РµС‚, С‡Р°РЅРєРё РЅРµ РЅСѓР¶РЅС‹
+        // РС‰РµРј С‚РѕР»СЊРєРѕ С„Р°Р№Р»С‹ РіРґРµ СЂР°Р·РјРµСЂ РќР• СЃРѕРІРїР°РґР°РµС‚ РґР»СЏ delta-Р°РЅР°Р»РёР·Р°
         var deltaCandiates = files.Where(f => {
             if (!useDeltaPatching || !f.IsPak || !f.ChunksReady || existingDir == null) 
                 return false;
@@ -1552,7 +1552,7 @@ public sealed class UpdateManager : IAsyncDisposable
             if (!File.Exists(localPath)) 
                 return false;
             var localSize = new FileInfo(localPath).Length;
-            // Только если размер ОТЛИЧАЕТСЯ - нужен анализ чанков
+            // РўРѕР»СЊРєРѕ РµСЃР»Рё СЂР°Р·РјРµСЂ РћРўР›РР§РђР•РўРЎРЇ - РЅСѓР¶РµРЅ Р°РЅР°Р»РёР· С‡Р°РЅРєРѕРІ
             return localSize != f.Size;
         }).ToList();
         
@@ -1576,21 +1576,21 @@ public sealed class UpdateManager : IAsyncDisposable
 
             if (existingFile == null)
             {
-                // Файл не существует - полная загрузка
+                // Р¤Р°Р№Р» РЅРµ СЃСѓС‰РµСЃС‚РІСѓРµС‚ - РїРѕР»РЅР°СЏ Р·Р°РіСЂСѓР·РєР°
                 plan.Action = FileAction.FullDownload;
                 plan.BytesToDownload = file.Size;
                 FileLogger.Log($"  [{fileNum}/{files.Count}] {file.Path} -> FULL DOWNLOAD (new file, {FormatBytes(file.Size)})");
             }
             else if (existingFile.Length == file.Size)
             {
-                // Размер совпадает - считаем файл идентичным, копируем без анализа чанков
+                // Р Р°Р·РјРµСЂ СЃРѕРІРїР°РґР°РµС‚ - СЃС‡РёС‚Р°РµРј С„Р°Р№Р» РёРґРµРЅС‚РёС‡РЅС‹Рј, РєРѕРїРёСЂСѓРµРј Р±РµР· Р°РЅР°Р»РёР·Р° С‡Р°РЅРєРѕРІ
                 plan.Action = FileAction.Copy;
                 plan.BytesToDownload = 0;
                 FileLogger.Log($"  [{fileNum}/{files.Count}] {file.Path} -> COPY (size match: {FormatBytes(file.Size)})");
             }
             else if (useDeltaPatching && serverChunksCache.TryGetValue(file.Path, out var serverChunks) && serverChunks.Count > 0)
             {
-                // Размер отличается и есть чанки - анализируем для delta-патчинга
+                // Р Р°Р·РјРµСЂ РѕС‚Р»РёС‡Р°РµС‚СЃСЏ Рё РµСЃС‚СЊ С‡Р°РЅРєРё - Р°РЅР°Р»РёР·РёСЂСѓРµРј РґР»СЏ delta-РїР°С‚С‡РёРЅРіР°
                 FileLogger.Log($"  [{fileNum}/{files.Count}] {file.Path} -> Analyzing chunks (size: local={FormatBytes(existingFile.Length)}, server={FormatBytes(file.Size)})...");
                 var chunkSw = Stopwatch.StartNew();
                 var localChunks = await FastCdcChunker.ChunkFileAsync(existingPath!, ct);
@@ -1600,7 +1600,7 @@ public sealed class UpdateManager : IAsyncDisposable
                 
                 if (chunksToDownload.Count == 0)
                 {
-                    // Все чанки совпали несмотря на разный размер (редкий случай)
+                    // Р’СЃРµ С‡Р°РЅРєРё СЃРѕРІРїР°Р»Рё РЅРµСЃРјРѕС‚СЂСЏ РЅР° СЂР°Р·РЅС‹Р№ СЂР°Р·РјРµСЂ (СЂРµРґРєРёР№ СЃР»СѓС‡Р°Р№)
                     plan.Action = FileAction.Copy;
                     FileLogger.Log($"    -> COPY (all {serverChunks.Count} chunks match, analyzed in {chunkSw.ElapsedMilliseconds}ms)");
                 }
@@ -1624,7 +1624,7 @@ public sealed class UpdateManager : IAsyncDisposable
             }
             else
             {
-                // Размер отличается, но нет чанков или delta отключен - полная загрузка
+                // Р Р°Р·РјРµСЂ РѕС‚Р»РёС‡Р°РµС‚СЃСЏ, РЅРѕ РЅРµС‚ С‡Р°РЅРєРѕРІ РёР»Рё delta РѕС‚РєР»СЋС‡РµРЅ - РїРѕР»РЅР°СЏ Р·Р°РіСЂСѓР·РєР°
                 plan.Action = FileAction.FullDownload;
                 plan.BytesToDownload = file.Size;
                 var reason = $"size mismatch: local={FormatBytes(existingFile.Length)} server={FormatBytes(file.Size)}";
@@ -1638,9 +1638,9 @@ public sealed class UpdateManager : IAsyncDisposable
     }
 
     /// <summary>
-    /// ? Мгновенная установка: анализирует файлы по очереди и сразу запускает скачивание+сборку
-    /// каждого файла, как только он проанализирован, не дожидаясь окончания анализа всех файлов.
-    /// Файлы обновляются in-place (на месте), неизменённые файлы пропускаются.
+    /// ? РњРіРЅРѕРІРµРЅРЅР°СЏ СѓСЃС‚Р°РЅРѕРІРєР°: Р°РЅР°Р»РёР·РёСЂСѓРµС‚ С„Р°Р№Р»С‹ РїРѕ РѕС‡РµСЂРµРґРё Рё СЃСЂР°Р·Сѓ Р·Р°РїСѓСЃРєР°РµС‚ СЃРєР°С‡РёРІР°РЅРёРµ+СЃР±РѕСЂРєСѓ
+    /// РєР°Р¶РґРѕРіРѕ С„Р°Р№Р»Р°, РєР°Рє С‚РѕР»СЊРєРѕ РѕРЅ РїСЂРѕР°РЅР°Р»РёР·РёСЂРѕРІР°РЅ, РЅРµ РґРѕР¶РёРґР°СЏСЃСЊ РѕРєРѕРЅС‡Р°РЅРёСЏ Р°РЅР°Р»РёР·Р° РІСЃРµС… С„Р°Р№Р»РѕРІ.
+    /// Р¤Р°Р№Р»С‹ РѕР±РЅРѕРІР»СЏСЋС‚СЃСЏ in-place (РЅР° РјРµСЃС‚Рµ), РЅРµРёР·РјРµРЅС‘РЅРЅС‹Рµ С„Р°Р№Р»С‹ РїСЂРѕРїСѓСЃРєР°СЋС‚СЃСЏ.
     /// </summary>
     private async Task InstallInPlaceInstantAsync(string modelId, string version, List<ServerFileInfo> files, string existingDir, string targetDir, bool useDeltaPatching, CancellationToken ct)
     {
@@ -1649,11 +1649,11 @@ public sealed class UpdateManager : IAsyncDisposable
         var linkedCt = errorCts.Token;
         var networkSemaphore = new SemaphoreSlim(_maxConcurrentDownloads);
         var diskSemaphore = new SemaphoreSlim(8);
-        // Ограничиваем число одновременно обрабатываемых файлов, чтобы не держать в памяти слишком много чанков
+        // РћРіСЂР°РЅРёС‡РёРІР°РµРј С‡РёСЃР»Рѕ РѕРґРЅРѕРІСЂРµРјРµРЅРЅРѕ РѕР±СЂР°Р±Р°С‚С‹РІР°РµРјС‹С… С„Р°Р№Р»РѕРІ, С‡С‚РѕР±С‹ РЅРµ РґРµСЂР¶Р°С‚СЊ РІ РїР°РјСЏС‚Рё СЃР»РёС€РєРѕРј РјРЅРѕРіРѕ С‡Р°РЅРєРѕРІ
         var fileSemaphore = new SemaphoreSlim(Math.Max(2, Environment.ProcessorCount / 2));
 
         long downloadedBytes = 0;
-        long discoveredBytes = 0; // растущий знаменатель прогресса (обнаруженный объём к загрузке)
+        long discoveredBytes = 0; // СЂР°СЃС‚СѓС‰РёР№ Р·РЅР°РјРµРЅР°С‚РµР»СЊ РїСЂРѕРіСЂРµСЃСЃР° (РѕР±РЅР°СЂСѓР¶РµРЅРЅС‹Р№ РѕР±СЉС‘Рј Рє Р·Р°РіСЂСѓР·РєРµ)
         int analyzed = 0;
         int processed = 0;
         int downloadStarted = 0;
@@ -1671,7 +1671,7 @@ public sealed class UpdateManager : IAsyncDisposable
             var existingFile = File.Exists(existingPath) ? new FileInfo(existingPath) : null;
             var plan = new FilePlan { File = file, ExistingPath = existingPath, ExistingFile = existingFile };
 
-            // ---- Классификация файла ----
+            // ---- РљР»Р°СЃСЃРёС„РёРєР°С†РёСЏ С„Р°Р№Р»Р° ----
             if (existingFile == null)
             {
                 plan.Action = FileAction.FullDownload;
@@ -1680,13 +1680,13 @@ public sealed class UpdateManager : IAsyncDisposable
             }
             else if (existingFile.Length == file.Size)
             {
-                // Размер совпадает — файл уже на месте, ничего делать не нужно
+                // Р Р°Р·РјРµСЂ СЃРѕРІРїР°РґР°РµС‚ вЂ” С„Р°Р№Р» СѓР¶Рµ РЅР° РјРµСЃС‚Рµ, РЅРёС‡РµРіРѕ РґРµР»Р°С‚СЊ РЅРµ РЅСѓР¶РЅРѕ
                 FileLogger.Log($"  [{analyzed}/{files.Count}] {file.Path} -> SKIP (size match: {FormatBytes(file.Size)})");
                 continue;
             }
             else if (useDeltaPatching && file.IsPak && file.ChunksReady)
             {
-                // Получаем chunk-инфо сервера и анализируем дельту прямо сейчас
+                // РџРѕР»СѓС‡Р°РµРј chunk-РёРЅС„Рѕ СЃРµСЂРІРµСЂР° Рё Р°РЅР°Р»РёР·РёСЂСѓРµРј РґРµР»СЊС‚Сѓ РїСЂСЏРјРѕ СЃРµР№С‡Р°СЃ
                 var serverChunks = await GetFileChunksAsync(modelId, file.Path, ct);
                 if (serverChunks.Count > 0)
                 {
@@ -1733,7 +1733,7 @@ public sealed class UpdateManager : IAsyncDisposable
                 FileLogger.Log($"  [{analyzed}/{files.Count}] {file.Path} -> FULL DOWNLOAD (size mismatch: local={FormatBytes(existingFile.Length)} server={FormatBytes(file.Size)})");
             }
 
-            // ---- Файл нужно обновить: СРАЗУ запускаем скачивание+сборку in-place в фоне ----
+            // ---- Р¤Р°Р№Р» РЅСѓР¶РЅРѕ РѕР±РЅРѕРІРёС‚СЊ: РЎР РђР—РЈ Р·Р°РїСѓСЃРєР°РµРј СЃРєР°С‡РёРІР°РЅРёРµ+СЃР±РѕСЂРєСѓ in-place РІ С„РѕРЅРµ ----
             Interlocked.Add(ref discoveredBytes, plan.BytesToDownload);
             var started = Interlocked.Increment(ref downloadStarted);
             FileLogger.Log($"  ? [START #{started}] Downloading {file.Path} immediately...");
@@ -1775,7 +1775,7 @@ public sealed class UpdateManager : IAsyncDisposable
         }
         catch
         {
-            // Дожидаемся завершения всех задач (в т.ч. отменённых), чтобы освободить файловые потоки перед очисткой
+            // Р”РѕР¶РёРґР°РµРјСЃСЏ Р·Р°РІРµСЂС€РµРЅРёСЏ РІСЃРµС… Р·Р°РґР°С‡ (РІ С‚.С‡. РѕС‚РјРµРЅС‘РЅРЅС‹С…), С‡С‚РѕР±С‹ РѕСЃРІРѕР±РѕРґРёС‚СЊ С„Р°Р№Р»РѕРІС‹Рµ РїРѕС‚РѕРєРё РїРµСЂРµРґ РѕС‡РёСЃС‚РєРѕР№
             try { await Task.WhenAll(processingTasks.Select(t => t.ContinueWith(_ => { }, TaskScheduler.Default))); } catch { }
 
             foreach (var tp in tempPaths)
@@ -1798,7 +1798,7 @@ public sealed class UpdateManager : IAsyncDisposable
     }
 
     /// <summary>
-    /// Скачивает и собирает один файл прямо в целевой каталог (in-place) через временный .new файл.
+    /// РЎРєР°С‡РёРІР°РµС‚ Рё СЃРѕР±РёСЂР°РµС‚ РѕРґРёРЅ С„Р°Р№Р» РїСЂСЏРјРѕ РІ С†РµР»РµРІРѕР№ РєР°С‚Р°Р»РѕРі (in-place) С‡РµСЂРµР· РІСЂРµРјРµРЅРЅС‹Р№ .new С„Р°Р№Р».
     /// </summary>
     private async Task ProcessInstantFileAsync(string modelId, string version, FilePlan plan, string targetDir, SemaphoreSlim netSem, SemaphoreSlim diskSem, Action<long> onProgress, CancellationToken ct)
     {
@@ -1809,14 +1809,14 @@ public sealed class UpdateManager : IAsyncDisposable
         {
             if (File.Exists(targetPath))
             {
-                // Качаем во временный файл, затем атомарно заменяем
+                // РљР°С‡Р°РµРј РІРѕ РІСЂРµРјРµРЅРЅС‹Р№ С„Р°Р№Р», Р·Р°С‚РµРј Р°С‚РѕРјР°СЂРЅРѕ Р·Р°РјРµРЅСЏРµРј
                 var tempPath = targetPath + ".new";
                 await DownloadFilePipelineAsync(modelId, plan.File, tempPath, netSem, diskSem, onProgress, ct);
                 await ReplaceFileWithRetryAsync(targetPath, tempPath, ct);
             }
             else
             {
-                // Новый файл — пишем сразу на место
+                // РќРѕРІС‹Р№ С„Р°Р№Р» вЂ” РїРёС€РµРј СЃСЂР°Р·Сѓ РЅР° РјРµСЃС‚Рѕ
                 await DownloadFilePipelineAsync(modelId, plan.File, targetPath, netSem, diskSem, onProgress, ct);
             }
         }
@@ -1869,7 +1869,7 @@ public sealed class UpdateManager : IAsyncDisposable
                             var total = Interlocked.Add(ref downloadedBytes, bytes);
                             UpdateSpeed(total);
                             
-                            // Периодический лог скорости
+                            // РџРµСЂРёРѕРґРёС‡РµСЃРєРёР№ Р»РѕРі СЃРєРѕСЂРѕСЃС‚Рё
                             if ((DateTime.UtcNow - lastSpeedLog).TotalSeconds >= 2)
                             {
                                 lastSpeedLog = DateTime.UtcNow;
@@ -2034,8 +2034,8 @@ public sealed class UpdateManager : IAsyncDisposable
     }
 
     /// <summary>
-    /// Обновляет файлы in-place: delta файлы собираются из чанков, полные загрузки перемещаются из кэша
-    /// Файлы Copy остаются на месте - не трогаем их вообще!
+    /// РћР±РЅРѕРІР»СЏРµС‚ С„Р°Р№Р»С‹ in-place: delta С„Р°Р№Р»С‹ СЃРѕР±РёСЂР°СЋС‚СЃСЏ РёР· С‡Р°РЅРєРѕРІ, РїРѕР»РЅС‹Рµ Р·Р°РіСЂСѓР·РєРё РїРµСЂРµРјРµС‰Р°СЋС‚СЃСЏ РёР· РєСЌС€Р°
+    /// Р¤Р°Р№Р»С‹ Copy РѕСЃС‚Р°СЋС‚СЃСЏ РЅР° РјРµСЃС‚Рµ - РЅРµ С‚СЂРѕРіР°РµРј РёС… РІРѕРѕР±С‰Рµ!
     /// </summary>
     private async Task AssembleFilesInPlaceAsync(List<FilePlan> plans, DownloadedData data, string targetDir, CancellationToken ct)
     {
@@ -2050,7 +2050,7 @@ public sealed class UpdateManager : IAsyncDisposable
         int processed = 0;
         int totalToProcess = deltaPlans.Count + fullDownloadPlans.Count;
         
-        // 1. Обрабатываем delta файлы
+        // 1. РћР±СЂР°Р±Р°С‚С‹РІР°РµРј delta С„Р°Р№Р»С‹
         foreach (var plan in deltaPlans)
         {
             processed++;
@@ -2059,14 +2059,14 @@ public sealed class UpdateManager : IAsyncDisposable
             
             FileLogger.Log($"[INPLACE] [{processed}/{totalToProcess}] DELTA: {plan.File.Path}");
             
-            // Собираем новый файл из существующего файла + скачанных чанков
+            // РЎРѕР±РёСЂР°РµРј РЅРѕРІС‹Р№ С„Р°Р№Р» РёР· СЃСѓС‰РµСЃС‚РІСѓСЋС‰РµРіРѕ С„Р°Р№Р»Р° + СЃРєР°С‡Р°РЅРЅС‹С… С‡Р°РЅРєРѕРІ
             var chunks = data.Chunks.GetValueOrDefault(plan.File.Path) ?? new();
             var downloadedCount = chunks.Count;
             var localCount = (plan.Chunks?.Count ?? 0) - downloadedCount;
             
             FileLogger.Log($"  [DELTA] {downloadedCount} downloaded + {localCount} local chunks");
             
-            // Записываем в временный файл
+            // Р—Р°РїРёСЃС‹РІР°РµРј РІ РІСЂРµРјРµРЅРЅС‹Р№ С„Р°Р№Р»
             await using (var output = new FileStream(tempPath, FileMode.Create, FileAccess.Write, FileShare.None, 4 * 1024 * 1024, FileOptions.Asynchronous))
             await using (var existing = new FileStream(plan.ExistingPath!, FileMode.Open, FileAccess.Read, FileShare.Read, 4 * 1024 * 1024, FileOptions.Asynchronous))
             {
@@ -2090,11 +2090,11 @@ public sealed class UpdateManager : IAsyncDisposable
                 FileLogger.Log($"  [DELTA] Written {FormatBytes(bytesWritten)}");
             }
             
-            // Атомарная замена файла
+            // РђС‚РѕРјР°СЂРЅР°СЏ Р·Р°РјРµРЅР° С„Р°Р№Р»Р°
             await ReplaceFileWithRetryAsync(targetPath, tempPath, ct);
         }
         
-        // 2. Обрабатываем полные загрузки - просто перемещаем из кэша
+        // 2. РћР±СЂР°Р±Р°С‚С‹РІР°РµРј РїРѕР»РЅС‹Рµ Р·Р°РіСЂСѓР·РєРё - РїСЂРѕСЃС‚Рѕ РїРµСЂРµРјРµС‰Р°РµРј РёР· РєСЌС€Р°
         foreach (var plan in fullDownloadPlans)
         {
             processed++;
@@ -2105,7 +2105,7 @@ public sealed class UpdateManager : IAsyncDisposable
             
             if (data.Files.TryGetValue(plan.File.Path, out var cachePath) && File.Exists(cachePath))
             {
-                // Если файл существует - делаем атомарную замену
+                // Р•СЃР»Рё С„Р°Р№Р» СЃСѓС‰РµСЃС‚РІСѓРµС‚ - РґРµР»Р°РµРј Р°С‚РѕРјР°СЂРЅСѓСЋ Р·Р°РјРµРЅСѓ
                 if (File.Exists(targetPath))
                 {
                     var tempPath = targetPath + ".new";
@@ -2114,7 +2114,7 @@ public sealed class UpdateManager : IAsyncDisposable
                 }
                 else
                 {
-                    // Новый файл - просто перемещаем
+                    // РќРѕРІС‹Р№ С„Р°Р№Р» - РїСЂРѕСЃС‚Рѕ РїРµСЂРµРјРµС‰Р°РµРј
                     File.Move(cachePath, targetPath, true);
                 }
                 FileLogger.Log($"  [FULL] Replaced");
@@ -2130,11 +2130,11 @@ public sealed class UpdateManager : IAsyncDisposable
     }
     
     /// <summary>
-    /// Атомарная замена файла с retry
+    /// РђС‚РѕРјР°СЂРЅР°СЏ Р·Р°РјРµРЅР° С„Р°Р№Р»Р° СЃ retry
     /// </summary>
     private async Task ReplaceFileWithRetryAsync(string targetPath, string tempPath, CancellationToken ct)
     {
-        // Освобождаем файловые дескрипторы
+        // РћСЃРІРѕР±РѕР¶РґР°РµРј С„Р°Р№Р»РѕРІС‹Рµ РґРµСЃРєСЂРёРїС‚РѕСЂС‹
         GC.Collect();
         GC.WaitForPendingFinalizers();
         
@@ -2157,13 +2157,13 @@ public sealed class UpdateManager : IAsyncDisposable
             }
         }
         
-        // Последняя попытка - пусть выбросит исключение
+        // РџРѕСЃР»РµРґРЅСЏСЏ РїРѕРїС‹С‚РєР° - РїСѓСЃС‚СЊ РІС‹Р±СЂРѕСЃРёС‚ РёСЃРєР»СЋС‡РµРЅРёРµ
         File.Delete(targetPath);
         File.Move(tempPath, targetPath);
     }
 
     /// <summary>
-    /// Собирает только delta файлы прямо в целевую директорию, без копирования неизменённых файлов
+    /// РЎРѕР±РёСЂР°РµС‚ С‚РѕР»СЊРєРѕ delta С„Р°Р№Р»С‹ РїСЂСЏРјРѕ РІ С†РµР»РµРІСѓСЋ РґРёСЂРµРєС‚РѕСЂРёСЋ, Р±РµР· РєРѕРїРёСЂРѕРІР°РЅРёСЏ РЅРµРёР·РјРµРЅС‘РЅРЅС‹С… С„Р°Р№Р»РѕРІ
     /// </summary>
     private async Task AssembleDeltaFilesInPlaceAsync(List<FilePlan> plans, DownloadedData data, string targetDir, CancellationToken ct)
     {
@@ -2180,14 +2180,14 @@ public sealed class UpdateManager : IAsyncDisposable
             
             FileLogger.Log($"[INPLACE] [{assembled}/{deltaPlans.Count}] DELTA: {plan.File.Path}");
             
-            // Собираем новый файл во временный файл рядом с оригиналом
+            // РЎРѕР±РёСЂР°РµРј РЅРѕРІС‹Р№ С„Р°Р№Р» РІРѕ РІСЂРµРјРµРЅРЅС‹Р№ С„Р°Р№Р» СЂСЏРґРѕРј СЃ РѕСЂРёРіРёРЅР°Р»РѕРј
             var chunks = data.Chunks.GetValueOrDefault(plan.File.Path) ?? new();
             var downloadedCount = chunks.Count;
             var localCount = (plan.Chunks?.Count ?? 0) - downloadedCount;
             
             FileLogger.Log($"  [DELTA-ASSEMBLE] {downloadedCount} downloaded + {localCount} local chunks");
             
-            // Записываем в временный файл
+            // Р—Р°РїРёСЃС‹РІР°РµРј РІ РІСЂРµРјРµРЅРЅС‹Р№ С„Р°Р№Р»
             await using (var output = new FileStream(tempPath, FileMode.Create, FileAccess.Write, FileShare.None, 4 * 1024 * 1024, FileOptions.Asynchronous))
             await using (var existing = new FileStream(plan.ExistingPath!, FileMode.Open, FileAccess.Read, FileShare.Read, 4 * 1024 * 1024, FileOptions.Asynchronous))
             {
@@ -2211,12 +2211,12 @@ public sealed class UpdateManager : IAsyncDisposable
                 FileLogger.Log($"  [DELTA-ASSEMBLE] Written {FormatBytes(bytesWritten)} to temp file");
             }
             
-            // Теперь заменяем оригинальный файл на новый
-            // Файловые дескрипторы закрыты благодаря using
+            // РўРµРїРµСЂСЊ Р·Р°РјРµРЅСЏРµРј РѕСЂРёРіРёРЅР°Р»СЊРЅС‹Р№ С„Р°Р№Р» РЅР° РЅРѕРІС‹Р№
+            // Р¤Р°Р№Р»РѕРІС‹Рµ РґРµСЃРєСЂРёРїС‚РѕСЂС‹ Р·Р°РєСЂС‹С‚С‹ Р±Р»Р°РіРѕРґР°СЂСЏ using
             GC.Collect();
             GC.WaitForPendingFinalizers();
             
-            // Retry логика для замены файла
+            // Retry Р»РѕРіРёРєР° РґР»СЏ Р·Р°РјРµРЅС‹ С„Р°Р№Р»Р°
             for (int attempt = 1; attempt <= 5; attempt++)
             {
                 try
@@ -2380,11 +2380,11 @@ public sealed class UpdateManager : IAsyncDisposable
         }
         catch (Exception ex)
         {
-            // Завершаем канал (с ошибкой), чтобы writeTask вышел из ReadAllAsync и освободил файловый поток.
+            // Р—Р°РІРµСЂС€Р°РµРј РєР°РЅР°Р» (СЃ РѕС€РёР±РєРѕР№), С‡С‚РѕР±С‹ writeTask РІС‹С€РµР» РёР· ReadAllAsync Рё РѕСЃРІРѕР±РѕРґРёР» С„Р°Р№Р»РѕРІС‹Р№ РїРѕС‚РѕРє.
             channel?.Writer.TryComplete(ex);
             if (writeTask != null)
             {
-                // Дожидаемся завершения записи, чтобы .new файл не остался открытым (иначе "файл используется").
+                // Р”РѕР¶РёРґР°РµРјСЃСЏ Р·Р°РІРµСЂС€РµРЅРёСЏ Р·Р°РїРёСЃРё, С‡С‚РѕР±С‹ .new С„Р°Р№Р» РЅРµ РѕСЃС‚Р°Р»СЃСЏ РѕС‚РєСЂС‹С‚С‹Рј (РёРЅР°С‡Рµ "С„Р°Р№Р» РёСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ").
                 try { await writeTask; } catch { }
             }
             throw;
@@ -2474,28 +2474,28 @@ public sealed class UpdateManager : IAsyncDisposable
     }
 
     /// <summary>
-    /// Сравнивает две версии. Возвращает >0 если v1 > v2, less than 0 если v1 less than v2, 0 если равны.
+    /// РЎСЂР°РІРЅРёРІР°РµС‚ РґРІРµ РІРµСЂСЃРёРё. Р’РѕР·РІСЂР°С‰Р°РµС‚ >0 РµСЃР»Рё v1 > v2, less than 0 РµСЃР»Рё v1 less than v2, 0 РµСЃР»Рё СЂР°РІРЅС‹.
     /// </summary>
     private static int CompareVersions(string v1, string v2)
     {
-        // Очищаем от префиксов
+        // РћС‡РёС‰Р°РµРј РѕС‚ РїСЂРµС„РёРєСЃРѕРІ
         var clean1 = v1.TrimStart('v', 'V').Trim();
         var clean2 = v2.TrimStart('v', 'V').Trim();
 
-        // Пробуем разобрать как Version (поддерживает формат X.X.X.X)
+        // РџСЂРѕР±СѓРµРј СЂР°Р·РѕР±СЂР°С‚СЊ РєР°Рє Version (РїРѕРґРґРµСЂР¶РёРІР°РµС‚ С„РѕСЂРјР°С‚ X.X.X.X)
         if (Version.TryParse(clean1, out var ver1) && 
             Version.TryParse(clean2, out var ver2))
         {
             return ver1.CompareTo(ver2);
         }
 
-        // Пробуем сравнить как числа (для простых версий типа "123" vs "456")
+        // РџСЂРѕР±СѓРµРј СЃСЂР°РІРЅРёС‚СЊ РєР°Рє С‡РёСЃР»Р° (РґР»СЏ РїСЂРѕСЃС‚С‹С… РІРµСЂСЃРёР№ С‚РёРїР° "123" vs "456")
         if (long.TryParse(clean1, out var num1) && long.TryParse(clean2, out var num2))
         {
             return num1.CompareTo(num2);
         }
 
-        // Fallback: сравниваем как строки
+        // Fallback: СЃСЂР°РІРЅРёРІР°РµРј РєР°Рє СЃС‚СЂРѕРєРё
         return string.Compare(clean1, clean2, StringComparison.OrdinalIgnoreCase);
     }
 
@@ -2519,7 +2519,7 @@ public sealed class UpdateManager : IAsyncDisposable
     {
         var dir = GetModelDirectory(modelId);
 
-        // Для игры - читаем версию из exe файла
+        // Р”Р»СЏ РёРіСЂС‹ - С‡РёС‚Р°РµРј РІРµСЂСЃРёСЋ РёР· exe С„Р°Р№Р»Р°
         if (IsGameModel(modelId))
         {
             var exeVersion = GetGameVersionFromExe(dir);
@@ -2527,7 +2527,7 @@ public sealed class UpdateManager : IAsyncDisposable
                 return exeVersion;
         }
 
-        // Fallback на .version файл (для модов и если exe не найден)
+        // Fallback РЅР° .version С„Р°Р№Р» (РґР»СЏ РјРѕРґРѕРІ Рё РµСЃР»Рё exe РЅРµ РЅР°Р№РґРµРЅ)
         var versionFile = Path.Combine(dir, ".version");
         return File.Exists(versionFile) ? File.ReadAllText(versionFile).Trim() : null;
     }
@@ -2871,8 +2871,8 @@ public record ServerGameInfo { [JsonPropertyName("id")] public string Id { get; 
 public record AddonsResponse { [JsonPropertyName("addons")] public List<ServerAddonInfo>? Addons { get; init; } }
 public record ServerAddonInfo 
 { 
-    [JsonPropertyName("id")] public string Id { get; init; } = "";              // FolderName для скачивания
-    [JsonPropertyName("modId")] public string ModId { get; init; } = "";        // Уникальный ID мода
+    [JsonPropertyName("id")] public string Id { get; init; } = "";              // FolderName РґР»СЏ СЃРєР°С‡РёРІР°РЅРёСЏ
+    [JsonPropertyName("modId")] public string ModId { get; init; } = "";        // РЈРЅРёРєР°Р»СЊРЅС‹Р№ ID РјРѕРґР°
     [JsonPropertyName("name")] public string Name { get; init; } = ""; 
     [JsonPropertyName("version")] public string Version { get; init; } = ""; 
     [JsonPropertyName("fileCount")] public int FileCount { get; init; } 

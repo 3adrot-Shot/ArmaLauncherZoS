@@ -1,4 +1,4 @@
-<Window x:Class="ArmaLauncherClient.UC.AdvancedSettingsDialog"
+﻿<Window x:Class="ArmaLauncherClient.UC.AdvancedSettingsDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:ArmaLauncherClient.UC"

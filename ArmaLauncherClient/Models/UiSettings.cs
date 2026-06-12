@@ -1,4 +1,4 @@
-namespace ArmaLauncherClient.Models;
+﻿namespace ArmaLauncherClient.Models;
 
 /// <summary>
 /// Настройки UI (персонаж, тема, слайдшоу)

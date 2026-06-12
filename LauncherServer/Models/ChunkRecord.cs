@@ -1,4 +1,4 @@
-namespace LauncherServer.Models;
+﻿namespace LauncherServer.Models;
 
 /// <summary>
 /// Chunk record in the deduplication database

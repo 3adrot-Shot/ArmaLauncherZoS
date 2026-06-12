@@ -1,4 +1,4 @@
-using MessagePack;
+﻿using MessagePack;
 
 namespace ArmaLauncherClient.Models;
 
