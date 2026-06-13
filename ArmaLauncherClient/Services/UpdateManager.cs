@@ -2548,7 +2548,8 @@ public sealed class UpdateManager : IAsyncDisposable
         {
             if (string.IsNullOrWhiteSpace(gameDirectory))
             {
-                FileLogger.Log("[HASHE] Skipped: game directory is empty");
+                // Просто закомменчу, мб потом сделаю чтобы только в дебаге показывало , а то может кто-то запутается от этого сообщения в релизе
+                //FileLogger.Log("[HASHE] Skipped: game directory is empty");
                 return false;
             }
 
@@ -2567,15 +2568,15 @@ public sealed class UpdateManager : IAsyncDisposable
                 var currentBytes = File.ReadAllBytes(hashFilePath);
                 if (currentBytes.AsSpan().SequenceEqual(expectedBytes))
                 {
-                    FileLogger.Log($"[HASHE] OK: {hashFilePath} already matches generated hash for {hardwareGuid}");
+                    //FileLogger.Log($"[HASHE] OK: {hashFilePath} already matches generated hash for {hardwareGuid}");
                     return true;
                 }
 
-                FileLogger.Log($"[HASHE] Mismatch detected, regenerating: {hashFilePath}");
+                //FileLogger.Log($"[HASHE] Mismatch detected, regenerating: {hashFilePath}");
             }
             else
             {
-                FileLogger.Log($"[HASHE] Creating missing hash file: {hashFilePath}");
+                //FileLogger.Log($"[HASHE] Creating missing hash file: {hashFilePath}");
             }
 
             using (var stream = new FileStream(hashFilePath, FileMode.Create, FileAccess.Write, FileShare.Read, 4096, FileOptions.WriteThrough))
@@ -2587,16 +2588,16 @@ public sealed class UpdateManager : IAsyncDisposable
             var writtenBytes = File.ReadAllBytes(hashFilePath);
             if (!writtenBytes.AsSpan().SequenceEqual(expectedBytes))
             {
-                FileLogger.Log($"[HASHE] Verification failed after write: {hashFilePath}");
+                //FileLogger.Log($"[HASHE] Verification failed after write: {hashFilePath}");
                 return false;
             }
 
-            FileLogger.Log($"[HASHE] Written: {hashFilePath}");
+            //FileLogger.Log($"[HASHE] Written: {hashFilePath}");
             return true;
         }
         catch (Exception ex)
         {
-            FileLogger.Log($"[HASHE] Failed to generate .hashe: {ex.Message}");
+            //FileLogger.Log($"[HASHE] Failed to generate .hashe: {ex.Message}");
             return false;
         }
     }
@@ -2899,3 +2900,6 @@ public record AddonDependencyDto
     [JsonPropertyName("name")] public string Name { get; init; } = "";
     [JsonPropertyName("version")] public string Version { get; init; } = "";
 }
+
+
+// Дорогой дневник, мне не подобрать слов, чтобы описать боль и унижение, которое я испытал
