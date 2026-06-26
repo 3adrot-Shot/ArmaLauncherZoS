@@ -49,7 +49,7 @@ public sealed class UpdateManager : IAsyncDisposable
     private readonly TimeSpan _progressThrottle = TimeSpan.FromMilliseconds(50);
     
     private const string SettingsFileName = "launcher_settings.json";
-    private const string GameIdPrefix = "game";
+    private static readonly string[] KnownGameModelIds = ["fullgame", "arma-reforger"];
 
     public event Action<DownloadProgress>? ProgressChanged;
     public string ServerUrl => _baseUrl;
@@ -281,9 +281,12 @@ public sealed class UpdateManager : IAsyncDisposable
         var serverInfo = await GetGameInfoAsync(ct);
         var latestVersion = serverInfo?.Version;
 
-        // Сравниваем версии
-        var needsUpdate = installedVersion == null || 
-                         (latestVersion != null && installedVersion != latestVersion);
+
+        var needsUpdate = installedVersion == null;
+        if (!needsUpdate && latestVersion != null && installedVersion != null)
+        {
+            needsUpdate = CompareVersions(latestVersion, installedVersion) > 0;
+        }
 
         var result = new ExistingGameInfo
         {
@@ -307,9 +310,8 @@ public sealed class UpdateManager : IAsyncDisposable
     /// <summary>
     /// Определяет, является ли модель игрой или модом
     /// </summary>
-    public bool IsGameModel(string modelId) => modelId.StartsWith(GameIdPrefix, StringComparison.OrdinalIgnoreCase) 
-                                              || modelId.Equals("arma-reforger", StringComparison.OrdinalIgnoreCase)
-                                              || modelId.Equals("fullgame", StringComparison.OrdinalIgnoreCase);
+    public bool IsGameModel(string modelId) =>
+        KnownGameModelIds.Any(gameId => modelId.Equals(gameId, StringComparison.OrdinalIgnoreCase));
 
     /// <summary>
     /// Возвращает путь установки для конкретной модели
@@ -2476,7 +2478,7 @@ public sealed class UpdateManager : IAsyncDisposable
     /// <summary>
     /// Сравнивает две версии. Возвращает >0 если v1 > v2, less than 0 если v1 less than v2, 0 если равны.
     /// </summary>
-    private static int CompareVersions(string v1, string v2)
+    public static int CompareVersions(string v1, string v2)
     {
         // Очищаем от префиксов
         var clean1 = v1.TrimStart('v', 'V').Trim();
@@ -2604,7 +2606,7 @@ public sealed class UpdateManager : IAsyncDisposable
 
     public bool EnsureCurrentGameHashFile(string? gameDirectory = null)
     {
-        return EnsureGameHashFile(GameIdPrefix, gameDirectory ?? _gameDirectory);
+        return EnsureGameHashFile("fullgame", gameDirectory ?? _gameDirectory);
     }
 
     private static byte[] BuildWeeGamesHashBytes(string gameDirectory, out string hardwareGuid)

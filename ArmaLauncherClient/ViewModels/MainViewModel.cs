@@ -181,6 +181,7 @@ public sealed class MainViewModel : INotifyPropertyChanged, IAsyncDisposable
             _updateManager.SetGamePath(value);
             OnPropertyChanged();
             OnPropertyChanged(nameof(GameInstallPath));
+            InitializeLocalGameState();
             FileLogger.Log($"Game path changed to: {value}");
         }
     }
@@ -196,6 +197,7 @@ public sealed class MainViewModel : INotifyPropertyChanged, IAsyncDisposable
             _updateManager.SetModsPath(value);
             OnPropertyChanged();
             OnPropertyChanged(nameof(ModsInstallPath));
+            OnPropertyChanged(nameof(LaunchParametersPreview));
             FileLogger.Log($"Mods path changed to: {value}");
         }
     }
@@ -212,6 +214,7 @@ public sealed class MainViewModel : INotifyPropertyChanged, IAsyncDisposable
         _updateManager.ResetGamePath();
         OnPropertyChanged(nameof(GamePath));
         OnPropertyChanged(nameof(GameInstallPath));
+        InitializeLocalGameState();
         FileLogger.Log("Game path reset to default");
     }
 
@@ -220,6 +223,7 @@ public sealed class MainViewModel : INotifyPropertyChanged, IAsyncDisposable
         _updateManager.ResetModsPath();
         OnPropertyChanged(nameof(ModsPath));
         OnPropertyChanged(nameof(ModsInstallPath));
+        OnPropertyChanged(nameof(LaunchParametersPreview));
         FileLogger.Log("Mods path reset to default");
     }
 
@@ -234,7 +238,18 @@ public sealed class MainViewModel : INotifyPropertyChanged, IAsyncDisposable
         {
             _useCustomLaunchParams = value;
             OnPropertyChanged();
+            OnPropertyChanged(nameof(LaunchParametersPreview));
             FileLogger.Log($"UseCustomLaunchParams changed to: {value}");
+        }
+    }
+
+    public string LaunchParametersPreview
+    {
+        get
+        {
+            var modsPath = _updateManager.ModsInstallRoot;
+            var tempAddonsDir = Path.Combine(Path.GetTempPath(), "ArmaLauncher", "TempDir");
+            return $"-addonsDir \"{modsPath}\" -addonDownloadDir \"{tempAddonsDir}\"";
         }
     }
 
@@ -989,15 +1004,33 @@ public sealed class MainViewModel : INotifyPropertyChanged, IAsyncDisposable
             return;
         }
 
-        // Словарь для быстрого поиска модели по ModId (для скачивания)
-        var downloadableMods = Models
-            .Where(m => !string.IsNullOrEmpty(m.ModId))
-            .ToDictionary(m => m.ModId, m => m);
+        // Словарь для быстрого поиска модели по ModId (для скачивания).
+        // В каталоге лаунчера могут встречаться дубли одного ModId, поэтому
+        // сначала дедуплицируем так же, как в ServerModsStatusDialog.
+        var catalogMods = Models
+            .Where(m => !string.IsNullOrWhiteSpace(m.ModId))
+            .GroupBy(m => m.ModId!, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        var duplicateCatalogMods = catalogMods.Where(g => g.Count() > 1).ToList();
+        foreach (var duplicate in duplicateCatalogMods)
+        {
+            FileLogger.Log($"[SERVER-FILTER] Duplicate catalog modId detected: {duplicate.Key} ({duplicate.Count()} entries)");
+        }
+
+        var downloadableMods = catalogMods
+            .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
+
+        var uniqueServerMods = _selectedModsServer.Mods
+            .Where(m => !string.IsNullOrWhiteSpace(m.ModId))
+            .GroupBy(m => m.ModId, StringComparer.OrdinalIgnoreCase)
+            .Select(g => g.First())
+            .ToList();
 
         int installed = 0, missing = 0, mismatch = 0;
         var items = new List<ServerModStatusViewModel>();
 
-        foreach (var serverMod in _selectedModsServer.Mods)
+        foreach (var serverMod in uniqueServerMods)
         {
             var item = new ServerModStatusViewModel
             {
@@ -1251,6 +1284,10 @@ public sealed class MainViewModel : INotifyPropertyChanged, IAsyncDisposable
 
         FileLogger.Log("MainViewModel created");
 
+        // Сразу инициализируем локальное состояние игры без ожидания проверки серверов.
+        // Лаунчер всегда должен знать: игра установлена или нет, и какую локальную версию он видит.
+        InitializeLocalGameState();
+
         // Запускаем слайдшоу фона
         StartSlideshow();
 
@@ -1259,6 +1296,41 @@ public sealed class MainViewModel : INotifyPropertyChanged, IAsyncDisposable
 
         RefreshGameRunningState();
         _gameProcessMonitorTimer.Start();
+    }
+
+    private void InitializeLocalGameState()
+    {
+        try
+        {
+            var installDir = _updateManager.GameInstallRoot;
+            var exePath = Path.Combine(installDir, "ArmaReforgerSteam.exe");
+            var installedVersion = UpdateManager.GetGameVersionFromExe(installDir);
+            var isInstalled = File.Exists(exePath) || !string.IsNullOrWhiteSpace(installedVersion);
+            var currentGameModel = _mainModel;
+            var latestVersion = currentGameModel?.LatestVersion;
+            var updateAvailable = isInstalled
+                && !string.IsNullOrWhiteSpace(installedVersion)
+                && !string.IsNullOrWhiteSpace(latestVersion)
+                && UpdateManager.CompareVersions(latestVersion!, installedVersion!) > 0;
+
+            SetMainModel(new ModelItemViewModel
+            {
+                Id = "fullgame",
+                Name = currentGameModel?.Name ?? "Arma Reforger",
+                InstalledVersion = isInstalled ? installedVersion : null,
+                LatestVersion = latestVersion,
+                UpdateAvailable = updateAvailable,
+                TotalSize = currentGameModel?.TotalSize ?? 0,
+                FileCount = currentGameModel?.FileCount ?? 0,
+                SizeFormatted = currentGameModel?.SizeFormatted ?? ""
+            });
+
+            FileLogger.Log($"[GAME-INIT] Local game state initialized. Installed={isInstalled}, Version={installedVersion ?? "none"}");
+        }
+        catch (Exception ex)
+        {
+            FileLogger.Log($"[GAME-INIT] Failed to initialize local game state: {ex.Message}");
+        }
     }
     
     /// <summary>
@@ -1602,7 +1674,6 @@ public sealed class MainViewModel : INotifyPropertyChanged, IAsyncDisposable
         _dispatcher.Invoke(() =>
         {
             Models.Clear();
-            SetMainModel(null);
         });
         
         try
@@ -1671,6 +1742,12 @@ public sealed class MainViewModel : INotifyPropertyChanged, IAsyncDisposable
                 
                 _dispatcher.Invoke(() => SetMainModel(gameModel));
             }
+            else if (MainModel == null)
+            {
+                // Если сервер пока не ответил по игре, но локальное состояние ещё не было создано,
+                // подстрахуемся и инициализируем его сейчас.
+                _dispatcher.Invoke(InitializeLocalGameState);
+            }
             
             // Получаем аддоны (моды) вместо models
             var serverAddons = await Task.Run(() => _updateManager.GetAddonsAsync());
@@ -1707,6 +1784,10 @@ public sealed class MainViewModel : INotifyPropertyChanged, IAsyncDisposable
 
             // Обновляем статистику размеров
             UpdateCatalogStats();
+
+            // Если в разделе модов выбран серверный фильтр, пересчитываем его сразу
+            // после загрузки каталога аддонов, чтобы стали видны доступные к скачиванию моды.
+            UpdateServerModsStatus();
         }
         catch (Exception ex)
         {
@@ -2408,7 +2489,9 @@ public sealed class MainViewModel : INotifyPropertyChanged, IAsyncDisposable
             if (UseCustomLaunchParams)
             {
                 var modsPath = _updateManager.ModsInstallRoot;
-                var arguments = $"-addonsDir \"{modsPath}\" -addonDownloadDir \"{modsPath}_downloading\"";
+                var tempAddonsDir = Path.Combine(Path.GetTempPath(), "ArmaLauncher", "TempDir");
+                Directory.CreateDirectory(tempAddonsDir);
+                var arguments = $"-addonsDir \"{modsPath}\" -addonDownloadDir \"{tempAddonsDir}\"";
 
                 FileLogger.Log($"[LAUNCH] Exe: {exePath}");
                 FileLogger.Log($"[LAUNCH] Arguments: {arguments}");

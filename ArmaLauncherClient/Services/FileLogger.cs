@@ -34,6 +34,23 @@ public static class FileLogger
     /// </summary>
     public static string LogFilePath => LogPath;
 
+    public static string GetCurrentLogContents()
+    {
+        try
+        {
+            lock (Lock)
+            {
+                return File.Exists(LogPath)
+                    ? File.ReadAllText(LogPath)
+                    : "Log file not found.";
+            }
+        }
+        catch (Exception ex)
+        {
+            return $"Failed to read log file: {ex.Message}";
+        }
+    }
+
     static FileLogger()
     {
         LogPath = Path.Combine(AppContext.BaseDirectory, "launcher.log");

@@ -1033,9 +1033,7 @@
                                             <Border Background="#1a2744" CornerRadius="8" Padding="12" Margin="0,12,0,0" Visibility="{Binding UseCustomLaunchParams, Converter={StaticResource BoolToVis}}">
                                                 <StackPanel>
                                                     <TextBlock Text="{loc:Loc settings_launch_params_label}" Foreground="#9ca3af" FontSize="11"/>
-                                                    <TextBlock Foreground="#6366f1" FontSize="12" Margin="0,4,0,0" TextWrapping="Wrap">
-                                                        <Run Text="-addonsDir &quot;"/><Run Text="{Binding ModsPath, Mode=OneWay}"/><Run Text="&quot; -addonDownloadDir &quot;"/><Run Text="{Binding ModsPath, Mode=OneWay}"/><Run Text="_downloading&quot;"/>
-                                                    </TextBlock>
+                                                    <TextBlock Text="{Binding LaunchParametersPreview}" Foreground="#6366f1" FontSize="12" Margin="0,4,0,0" TextWrapping="Wrap"/>
                                                 </StackPanel>
                                             </Border>
                                         </StackPanel>

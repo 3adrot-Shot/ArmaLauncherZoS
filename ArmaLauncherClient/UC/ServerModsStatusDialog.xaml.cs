@@ -42,17 +42,40 @@ public partial class ServerModsStatusDialog : Window
             return;
         }
 
-        // Получаем список доступных для скачивания модов (из каталога сервера)
-        var downloadableMods = viewModel.Models
-            .Where(m => !string.IsNullOrEmpty(m.ModId))
-            .ToDictionary(m => m.ModId, m => m);
+        // Получаем список доступных для скачивания модов (из каталога сервера).
+        // На некоторых серверах/в каталогах встречаются дубли одного и того же ModId,
+        // поэтому здесь нельзя использовать прямой ToDictionary без дедупликации.
+        var catalogMods = viewModel.Models
+            .Where(m => !string.IsNullOrWhiteSpace(m.ModId))
+            .GroupBy(m => m.ModId!, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        var duplicateCatalogMods = catalogMods.Where(g => g.Count() > 1).ToList();
+        foreach (var duplicate in duplicateCatalogMods)
+        {
+            FileLogger.Log($"[SERVER-MODS] Duplicate catalog modId detected: {duplicate.Key} ({duplicate.Count()} entries)");
+        }
+
+        var downloadableMods = catalogMods
+            .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
+
+        var uniqueServerMods = server.Mods
+            .GroupBy(m => m.ModId, StringComparer.OrdinalIgnoreCase)
+            .Select(g => g.First())
+            .ToList();
+
+        var duplicateServerMods = server.Mods.Count - uniqueServerMods.Count;
+        if (duplicateServerMods > 0)
+        {
+            FileLogger.Log($"[SERVER-MODS] Duplicate server mods detected for {server.Name}: {duplicateServerMods}");
+        }
 
         var modItems = new List<ModStatusItem>();
         int installedCount = 0;
         int missingCount = 0;
         int mismatchCount = 0;
 
-        foreach (var serverMod in server.Mods)
+        foreach (var serverMod in uniqueServerMods)
         {
             var item = new ModStatusItem
             {

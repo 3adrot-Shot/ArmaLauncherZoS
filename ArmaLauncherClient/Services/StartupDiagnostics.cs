@@ -426,6 +426,12 @@ public static class StartupDiagnostics
         // Add diagnostics
         sb.AppendLine();
         sb.Append(RunFullDiagnostics());
+
+        sb.AppendLine();
+        sb.AppendLine("--- Client Log ---");
+        sb.AppendLine($"Log file: {FileLogger.LogFilePath}");
+        sb.AppendLine();
+        sb.Append(FileLogger.GetCurrentLogContents());
         
         return sb.ToString();
     }
