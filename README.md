@@ -10,6 +10,7 @@
   <img alt=".NET" src="https://img.shields.io/badge/.NET-10-512BD4?style=for-the-badge&logo=dotnet&logoColor=white">
   <img alt="WPF" src="https://img.shields.io/badge/UI-WPF-0C54C2?style=for-the-badge&logo=windows&logoColor=white">
   <img alt="ASP.NET Core" src="https://img.shields.io/badge/Server-ASP.NET_Core-5C2D91?style=for-the-badge&logo=dotnet&logoColor=white">
+  <img alt="License" src="https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge">
   <img alt="Status" src="https://img.shields.io/badge/Status-Active-success?style=for-the-badge">
 </p>
 
@@ -371,3 +372,12 @@
 ## Итог
 
 **ArmaLauncher** — это не просто загрузчик файлов, а полноценная система доставки игрового контента с клиентом, сервером, поддержкой чанков, кэша, проверки данных и современным интерфейсом.
+
+---
+
+## CI/CD и подпись релизов
+
+- В репозитории настроены GitHub Actions для сборки проекта.
+- Для релизов добавлен workflow с отправкой клиентского артефакта в SignPath.
+- Лицензия проекта: `MIT`.
+- Инструкция по настройке секретов и SignPath: `docs/github-actions-signpath.md`.
