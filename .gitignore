@@ -362,3 +362,4 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 ArmaLauncherClient/Primer/*.pak
+/docs/github-actions-signpath.md
