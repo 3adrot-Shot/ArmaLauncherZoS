@@ -121,11 +121,11 @@ jobs:
           output-artifact-directory: artifacts/signed
           skip-decompress: false
 
-      - name: Fail when SignPath is not configured
+      - name: Skip SignPath when not configured
         if: ${{ steps.signpath_config.outputs.configured != 'true' }}
         shell: pwsh
         run: |
-          Write-Error 'SignPath secrets are not configured. Add SIGNPATH_API_TOKEN, SIGNPATH_ORGANIZATION_ID, SIGNPATH_PROJECT_SLUG and SIGNPATH_SIGNING_POLICY_SLUG.'
+          Write-Host 'SignPath secrets are not configured. The workflow will attach the unsigned executable to the release.'
 
       - name: Upload signed client artifact
         if: ${{ steps.signpath.outputs.signing-request-id != '' }}
@@ -135,9 +135,28 @@ jobs:
           path: artifacts/signed/ArmaLauncherClient-win-x64-v${{ steps.version.outputs.version }}.exe
           if-no-files-found: error
 
+      - name: Prepare release asset
+        if: ${{ github.event_name == 'push' }}
+        shell: pwsh
+        run: |
+          $version = '${{ steps.version.outputs.version }}'
+          $fileName = "ArmaLauncherClient-win-x64-v$version.exe"
+          $signedPath = Join-Path 'artifacts/signed' $fileName
+          $unsignedPath = Join-Path 'artifacts/unsigned' $fileName
+          $releaseDir = 'artifacts/release'
+
+          New-Item -ItemType Directory -Path $releaseDir -Force | Out-Null
+
+          if (Test-Path $signedPath) {
+            Copy-Item $signedPath (Join-Path $releaseDir $fileName) -Force
+          }
+          else {
+            Copy-Item $unsignedPath (Join-Path $releaseDir $fileName) -Force
+          }
+
       - name: Attach signed artifact to release
-        if: ${{ github.event_name == 'push' && steps.signpath.outputs.signing-request-id != '' }}
+        if: ${{ github.event_name == 'push' }}
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
-          files: artifacts/signed/ArmaLauncherClient-win-x64-v${{ steps.version.outputs.version }}.exe
+          files: artifacts/release/ArmaLauncherClient-win-x64-v${{ steps.version.outputs.version }}.exe
