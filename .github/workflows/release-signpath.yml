@@ -1,0 +1,75 @@
+name: release-signpath
+
+on:
+  workflow_dispatch:
+  release:
+    types:
+      - published
+
+permissions:
+  contents: write
+
+jobs:
+  sign-client:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore
+        run: dotnet restore ArmaLauncher.slnx
+
+      - name: Publish client
+        run: dotnet publish ArmaLauncherClient/ArmaLauncherClient.csproj --configuration Publish --runtime win-x64 --self-contained true -p:PublishSingleFile=true -o artifacts/client
+
+      - name: Archive unsigned client artifact
+        shell: pwsh
+        run: Compress-Archive -Path artifacts/client/* -DestinationPath artifacts/ArmaLauncherClient-unsigned.zip -Force
+
+      - name: Upload unsigned artifact for SignPath
+        id: upload_unsigned
+        uses: actions/upload-artifact@v4
+        with:
+          name: ArmaLauncherClient-unsigned-zip
+          path: artifacts/ArmaLauncherClient-unsigned.zip
+          if-no-files-found: error
+
+      - name: Submit signing request
+        id: signpath
+        if: ${{ secrets.SIGNPATH_API_TOKEN != '' && secrets.SIGNPATH_ORGANIZATION_ID != '' && secrets.SIGNPATH_PROJECT_SLUG != '' && secrets.SIGNPATH_SIGNING_POLICY_SLUG != '' }}
+        uses: signpath/github-action-submit-signing-request@v2.2
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ secrets.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ secrets.SIGNPATH_PROJECT_SLUG }}
+          signing-policy-slug: ${{ secrets.SIGNPATH_SIGNING_POLICY_SLUG }}
+          artifact-configuration-slug: ${{ secrets.SIGNPATH_ARTIFACT_CONFIGURATION_SLUG }}
+          github-artifact-id: ${{ steps.upload_unsigned.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: artifacts/signed
+          skip-decompress: false
+
+      - name: Fail when SignPath is not configured
+        if: ${{ !(secrets.SIGNPATH_API_TOKEN != '' && secrets.SIGNPATH_ORGANIZATION_ID != '' && secrets.SIGNPATH_PROJECT_SLUG != '' && secrets.SIGNPATH_SIGNING_POLICY_SLUG != '') }}
+        shell: pwsh
+        run: |
+          Write-Error 'SignPath secrets are not configured. Add SIGNPATH_API_TOKEN, SIGNPATH_ORGANIZATION_ID, SIGNPATH_PROJECT_SLUG and SIGNPATH_SIGNING_POLICY_SLUG.'
+
+      - name: Upload signed client artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ArmaLauncherClient-signed
+          path: artifacts/signed
+          if-no-files-found: error
+
+      - name: Attach signed artifact to release
+        if: ${{ github.event_name == 'release' }}
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/signed/**

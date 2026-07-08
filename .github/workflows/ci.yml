@@ -1,0 +1,49 @@
+name: ci
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore
+        run: dotnet restore ArmaLauncher.slnx
+
+      - name: Build
+        run: dotnet build ArmaLauncher.slnx --configuration Release --no-restore
+
+      - name: Publish client
+        run: dotnet publish ArmaLauncherClient/ArmaLauncherClient.csproj --configuration Publish --runtime win-x64 --self-contained true -p:PublishSingleFile=true -o artifacts/client
+
+      - name: Publish server
+        run: dotnet publish LauncherServer/LauncherServer.csproj --configuration Release -o artifacts/server
+
+      - name: Upload client artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ArmaLauncherClient-unsigned
+          path: artifacts/client
+          if-no-files-found: error
+
+      - name: Upload server artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: LauncherServer
+          path: artifacts/server
+          if-no-files-found: error
