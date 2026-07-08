@@ -251,6 +251,7 @@ public partial class ServerModsStatusDialog : Window
                         {
                             FilePath = f.Path,
                             IsMissing = f.IsMissing,
+                            IsExtra = f.IsExtra,
                             LocalSize = f.LocalSize,
                             ExpectedSize = f.ExpectedSize
                         })

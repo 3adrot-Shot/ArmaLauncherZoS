@@ -635,11 +635,21 @@ public sealed class UpdateManager : IAsyncDisposable
             _speedSamples.Clear();
             _currentSpeed = 0;
 
+            // Определяем, изменилась ли версия мода - если да, принудительно обновляем метаданные
+            // (meta/ServerData.json могут меняться без изменения размера файла)
+            var localVersion = existingDir != null ? ReadAddonVersion(existingDir) : null;
+            var versionChanged = existingDir != null && !string.Equals(localVersion, version, StringComparison.OrdinalIgnoreCase);
+            if (versionChanged)
+            {
+                FileLogger.Log($"[ADDON] Version change detected: local={localVersion ?? "none"} -> server={version}");
+                FileLogger.Log($"[ADDON] Non-pak files (meta, ServerData.json, ...) will be re-downloaded");
+            }
+
             // Build download plan (same as for game models)
             FileLogger.Log($"");
             FileLogger.Log($">>> PHASE 1: ANALYZING FILES <<<");
             var analysisSw = Stopwatch.StartNew();
-            var downloadPlan = BuildAddonDownloadPlan(folderId, files, existingDir);
+            var downloadPlan = BuildAddonDownloadPlan(folderId, files, existingDir, versionChanged);
             analysisSw.Stop();
 
             long totalToDownload = downloadPlan.Sum(p => p.BytesToDownload);
@@ -657,6 +667,9 @@ public sealed class UpdateManager : IAsyncDisposable
             {
                 FileLogger.Log($"");
                 FileLogger.Log($">>> ALL FILES UP TO DATE - FAST PATH <<<");
+
+                // Удаляем лишние файлы, которых больше нет на сервере
+                RemoveObsoleteAddonFiles(addonDir, files);
 
                 globalSw.Stop();
 
@@ -685,6 +698,9 @@ public sealed class UpdateManager : IAsyncDisposable
                 FileLogger.Log($"");
                 FileLogger.Log($"> IN-PLACE ASSEMBLING <");
                 await AssembleAddonFilesInPlaceAsync(downloadPlan, downloadedData, addonDir, linkedCt);
+
+                // Удаляем лишние файлы, которых больше нет на сервере
+                RemoveObsoleteAddonFiles(addonDir, files);
 
                 try { Directory.Delete(cacheDir, true); } catch { }
                 try { if (Directory.Exists(tempDir)) Directory.Delete(tempDir, true); } catch { }
@@ -769,7 +785,7 @@ public sealed class UpdateManager : IAsyncDisposable
     /// <summary>
     /// Build download plan for addon files (simplified - no delta, just size comparison)
     /// </summary>
-    private List<FilePlan> BuildAddonDownloadPlan(string folderId, List<ServerFileInfo> files, string? existingDir)
+    private List<FilePlan> BuildAddonDownloadPlan(string folderId, List<ServerFileInfo> files, string? existingDir, bool forceMetadataRefresh = false)
     {
         FileLogger.Log($"[ANALYSIS] Starting file analysis for {files.Count} addon files...");
         var plans = new List<FilePlan>();
@@ -788,6 +804,14 @@ public sealed class UpdateManager : IAsyncDisposable
                 plan.Action = FileAction.FullDownload;
                 plan.BytesToDownload = file.Size;
                 FileLogger.Log($"  [{fileNum}/{files.Count}] {file.Path} -> FULL DOWNLOAD (new file, {FormatBytes(file.Size)})");
+            }
+            else if (forceMetadataRefresh && !file.IsPak && existingFile.Length == file.Size)
+            {
+                // Файлы типа meta/ServerData.json могут меняться без изменения размера.
+                // При смене версии мода принудительно перекачиваем все не-pak файлы.
+                plan.Action = FileAction.FullDownload;
+                plan.BytesToDownload = file.Size;
+                FileLogger.Log($"  [{fileNum}/{files.Count}] {file.Path} -> FULL DOWNLOAD (metadata refresh, {FormatBytes(file.Size)})");
             }
             else if (existingFile.Length == file.Size)
             {
@@ -1031,6 +1055,75 @@ public sealed class UpdateManager : IAsyncDisposable
     }
 
     /// <summary>
+    /// Удаляет из папки аддона файлы, которых больше нет на сервере
+    /// </summary>
+    private void RemoveObsoleteAddonFiles(string addonDir, List<ServerFileInfo> files)
+    {
+        try
+        {
+            if (!Directory.Exists(addonDir)) return;
+
+            var expected = new HashSet<string>(
+                files.Select(f => Path.GetFullPath(Path.Combine(addonDir, f.Path.Replace('/', Path.DirectorySeparatorChar)))),
+                StringComparer.OrdinalIgnoreCase);
+
+            int removed = 0;
+            foreach (var localFile in Directory.GetFiles(addonDir, "*", SearchOption.AllDirectories))
+            {
+                var fileName = Path.GetFileName(localFile);
+
+                // Служебные файлы лаунчера не трогаем
+                if (IsProtectedAddonFile(fileName))
+                    continue;
+
+                if (!expected.Contains(Path.GetFullPath(localFile)))
+                {
+                    try
+                    {
+                        File.Delete(localFile);
+                        removed++;
+                        FileLogger.Log($"[CLEANUP] Removed obsolete file: {Path.GetRelativePath(addonDir, localFile)}");
+                    }
+                    catch (Exception ex)
+                    {
+                        FileLogger.Log($"[CLEANUP] Failed to remove {localFile}: {ex.Message}");
+                    }
+                }
+            }
+
+            // Удаляем опустевшие подпапки (от самых глубоких к корню)
+            foreach (var dir in Directory.GetDirectories(addonDir, "*", SearchOption.AllDirectories)
+                         .OrderByDescending(d => d.Length))
+            {
+                try
+                {
+                    if (!Directory.EnumerateFileSystemEntries(dir).Any())
+                        Directory.Delete(dir);
+                }
+                catch { }
+            }
+
+            if (removed > 0)
+                FileLogger.Log($"[CLEANUP] Removed {removed} obsolete file(s)");
+        }
+        catch (Exception ex)
+        {
+            FileLogger.Log($"[CLEANUP] Cleanup failed: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Служебные файлы, которые нельзя считать лишними и удалять из папки аддона
+    /// </summary>
+    private static bool IsProtectedAddonFile(string fileName)
+    {
+        // .version - служебный файл лаунчера
+        // ServerData.json - сервер исключает его из списка файлов, но клиент читает из него версию
+        return fileName.Equals(".version", StringComparison.OrdinalIgnoreCase)
+            || fileName.Equals("ServerData.json", StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
     /// Проверяет установку аддона
     /// </summary>
     public async Task<VerifyResult> VerifyAddonAsync(string folderId, CancellationToken ct = default)
@@ -1079,6 +1172,25 @@ public sealed class UpdateManager : IAsyncDisposable
             }
         }
 
+        // Проверяем лишние файлы, которых нет на сервере
+        var expectedPaths = new HashSet<string>(
+            files.Select(f => Path.GetFullPath(Path.Combine(addonDir, f.Path.Replace('/', Path.DirectorySeparatorChar)))),
+            StringComparer.OrdinalIgnoreCase);
+
+        foreach (var localFile in Directory.GetFiles(addonDir, "*", SearchOption.AllDirectories))
+        {
+            if (IsProtectedAddonFile(Path.GetFileName(localFile)))
+                continue;
+
+            if (!expectedPaths.Contains(Path.GetFullPath(localFile)))
+            {
+                var relPath = Path.GetRelativePath(addonDir, localFile).Replace('\\', '/');
+                invalid.Add(relPath);
+                invalidDetails.Add(new InvalidFileDetails { Path = relPath, IsMissing = false, IsExtra = true, LocalSize = new FileInfo(localFile).Length, ExpectedSize = 0 });
+                FileLogger.Log($"[ADDON-VERIFY] EXTRA FILE: {relPath}");
+            }
+        }
+
         FileLogger.Log($"[ADDON-VERIFY] Result: {(invalid.Count == 0 ? "OK" : $"{invalid.Count} invalid files")}");
         return new VerifyResult { Success = invalid.Count == 0, InvalidFiles = invalid, InvalidFileDetails = invalidDetails };
     }
@@ -1090,6 +1202,38 @@ public sealed class UpdateManager : IAsyncDisposable
     {
         // Аддоны имеют формат Name_ModId (с подчёркиванием и hex ID)
         return id.Contains('_') && !IsGameModel(id);
+    }
+
+    /// <summary>
+    /// Проверяет, есть ли у процесса права на запись в указанную папку
+    /// </summary>
+    public static bool HasWriteAccess(string directory)
+    {
+        try
+        {
+            Directory.CreateDirectory(directory);
+            var testFile = Path.Combine(directory, $".write_test_{Guid.NewGuid():N}");
+            File.WriteAllText(testFile, "ok");
+            File.Delete(testFile);
+            return true;
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return false;
+        }
+        catch (System.Security.SecurityException)
+        {
+            return false;
+        }
+        catch (IOException ex) when (ex.HResult == unchecked((int)0x80070005))
+        {
+            return false;
+        }
+        catch
+        {
+            // Не удалось проверить - не блокируем установку, реальная ошибка проявится позже
+            return true;
+        }
     }
 
     public async Task<ServerModelDetails?> GetModelDetailsAsync(string modelId, CancellationToken ct = default)
@@ -2866,7 +3010,7 @@ public record ServerChunkInfo { [JsonPropertyName("index")] public int Index { g
 public record UpdateCheckResult { public string ModelId { get; init; } = ""; public bool IsInstalled { get; init; } public string? InstalledVersion { get; init; } public string? LatestVersion { get; init; } public bool UpdateAvailable { get; init; } public long TotalSize { get; init; } public int FileCount { get; init; } }
 public record InstallResult { public bool Success { get; init; } public string ModelId { get; init; } = ""; public string? Version { get; init; } public string? InstallPath { get; init; } public string? Error { get; init; } }
 public record VerifyResult { public bool Success { get; init; } public string? Error { get; init; } public List<string>? InvalidFiles { get; init; } public List<InvalidFileDetails>? InvalidFileDetails { get; init; } }
-public record InvalidFileDetails { public string Path { get; init; } = ""; public bool IsMissing { get; init; } public long LocalSize { get; init; } public long ExpectedSize { get; init; } }
+public record InvalidFileDetails { public string Path { get; init; } = ""; public bool IsMissing { get; init; } public bool IsExtra { get; init; } public long LocalSize { get; init; } public long ExpectedSize { get; init; } }
 public record ServerInfoResponse { [JsonPropertyName("version")] public string Version { get; init; } = ""; [JsonPropertyName("game")] public ServerGameInfo? Game { get; init; } }
 public record ServerGameInfo { [JsonPropertyName("id")] public string Id { get; init; } = ""; [JsonPropertyName("name")] public string Name { get; init; } = ""; [JsonPropertyName("version")] public string Version { get; init; } = ""; [JsonPropertyName("totalSize")] public long TotalSize { get; init; } [JsonPropertyName("totalSizeFormatted")] public string TotalSizeFormatted { get; init; } = ""; [JsonPropertyName("fileCount")] public int FileCount { get; init; } }
 

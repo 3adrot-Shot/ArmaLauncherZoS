@@ -48,6 +48,7 @@ namespace ArmaLauncherClient
                         {
                             FilePath = f.Path,
                             IsMissing = f.IsMissing,
+                            IsExtra = f.IsExtra,
                             LocalSize = f.LocalSize,
                             ExpectedSize = f.ExpectedSize
                         })
@@ -201,6 +202,7 @@ namespace ArmaLauncherClient
                     {
                         FilePath = f.Path,
                         IsMissing = f.IsMissing,
+                        IsExtra = f.IsExtra,
                         LocalSize = f.LocalSize,
                         ExpectedSize = f.ExpectedSize
                     })

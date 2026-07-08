@@ -1817,6 +1817,19 @@ public sealed class MainViewModel : INotifyPropertyChanged, IAsyncDisposable
 
         FileLogger.Log($"InstallAsync called for {model.Id} v{model.LatestVersion}");
 
+        // Предварительная проверка прав записи, чтобы не падать в середине установки
+        var installRoot = _updateManager.IsAddon(model.Id)
+            ? _updateManager.ModsInstallRoot
+            : _updateManager.GameInstallRoot;
+
+        if (!UpdateManager.HasWriteAccess(installRoot))
+        {
+            FileLogger.Log($"[INSTALL] No write access to '{installRoot}' - elevation required");
+            StatusMessage = LocalizationManager.S("status_admin_required");
+            PromptRestartAsAdmin(installRoot);
+            return;
+        }
+
         // Создаём CTS только если это одиночная операция
         var ownsToken = false;
         if (_cts == null)
@@ -1883,14 +1896,29 @@ public sealed class MainViewModel : INotifyPropertyChanged, IAsyncDisposable
             {
                 FileLogger.Log($"Install failed: {result.Error}");
                 StatusMessage = $"Failed: {result.Error}";
-                _dispatcher.Invoke(() =>
+
+                // Если причина - отсутствие прав записи, предлагаем перезапуск от администратора
+                var rootAfterFail = _updateManager.IsAddon(modelId)
+                    ? _updateManager.ModsInstallRoot
+                    : _updateManager.GameInstallRoot;
+
+                if (!UpdateManager.HasWriteAccess(rootAfterFail))
                 {
-                    UC.NotificationDialog.Show(
-                        Application.Current.MainWindow,
-                        LocalizationManager.S("error_install_title"),
-                        LocalizationManager.F("error_install_msg", model.DisplayName, result.Error ?? "Unknown error"),
-                        UC.NotificationDialogType.Error);
-                });
+                    FileLogger.Log($"[INSTALL] Write access denied for '{rootAfterFail}' - elevation required");
+                    StatusMessage = LocalizationManager.S("status_admin_required");
+                    PromptRestartAsAdmin(rootAfterFail);
+                }
+                else
+                {
+                    _dispatcher.Invoke(() =>
+                    {
+                        UC.NotificationDialog.Show(
+                            Application.Current.MainWindow,
+                            LocalizationManager.S("error_install_title"),
+                            LocalizationManager.F("error_install_msg", model.DisplayName, result.Error ?? "Unknown error"),
+                            UC.NotificationDialogType.Error);
+                    });
+                }
             }
         }
         catch (OperationCanceledException)
@@ -1959,6 +1987,17 @@ public sealed class MainViewModel : INotifyPropertyChanged, IAsyncDisposable
                 }
 
                 throw; // Пробрасываем для остановки массовой операции
+            }
+            else if (IsAccessDeniedException(ex))
+            {
+                FileLogger.Error("Install failed - access denied", ex);
+                StatusMessage = LocalizationManager.S("status_admin_required");
+
+                var deniedRoot = _updateManager.IsAddon(modelId)
+                    ? _updateManager.ModsInstallRoot
+                    : _updateManager.GameInstallRoot;
+
+                PromptRestartAsAdmin(deniedRoot);
             }
             else
             {
@@ -2259,7 +2298,8 @@ public sealed class MainViewModel : INotifyPropertyChanged, IAsyncDisposable
                         .Select(f => new UC.InvalidFileDisplayItem
                         {
                             FileName = f.Path,
-                            IsMissing = f.IsMissing
+                            IsMissing = f.IsMissing,
+                            IsExtra = f.IsExtra
                         })
                         .ToList();
                     FileLogger.Log($"[VERIFY-ALL] {addon.Id}: Invalid ({result.InvalidFiles?.Count ?? 0} files)");
@@ -2358,7 +2398,8 @@ public sealed class MainViewModel : INotifyPropertyChanged, IAsyncDisposable
                         .Select(f => new UC.InvalidFileDisplayItem
                         {
                             FileName = f.Path,
-                            IsMissing = f.IsMissing
+                            IsMissing = f.IsMissing,
+                            IsExtra = f.IsExtra
                         })
                         .ToList();
                     FileLogger.Log($"[VERIFY-SERVER] {modStatus.Name}: Invalid ({result.InvalidFiles?.Count ?? 0} files)");
@@ -2887,6 +2928,93 @@ public sealed class MainViewModel : INotifyPropertyChanged, IAsyncDisposable
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// Проверяет, является ли исключение ошибкой отсутствия прав доступа
+    /// </summary>
+    private static bool IsAccessDeniedException(Exception ex)
+    {
+        if (ex is UnauthorizedAccessException or System.Security.SecurityException)
+            return true;
+
+        if (ex is IOException ioEx)
+        {
+            const int ERROR_ACCESS_DENIED = unchecked((int)0x80070005);
+            if (ioEx.HResult == ERROR_ACCESS_DENIED)
+                return true;
+        }
+
+        if (ex is AggregateException aggEx)
+        {
+            foreach (var inner in aggEx.InnerExceptions)
+            {
+                if (IsAccessDeniedException(inner))
+                    return true;
+            }
+        }
+
+        return ex.InnerException != null && IsAccessDeniedException(ex.InnerException);
+    }
+
+    /// <summary>
+    /// Показывает диалог с предложением перезапустить лаунчер от имени администратора
+    /// </summary>
+    private void PromptRestartAsAdmin(string installPath)
+    {
+        var restart = _dispatcher.Invoke(() =>
+            UC.NotificationDialog.ShowConfirm(
+                Application.Current.MainWindow,
+                LocalizationManager.S("error_admin_title"),
+                LocalizationManager.F("error_admin_msg", installPath),
+                UC.NotificationDialogType.Warning,
+                LocalizationManager.S("admin_btn_restart"),
+                LocalizationManager.S("admin_btn_cancel")));
+
+        if (restart)
+            RestartAsAdministrator();
+        else
+            _cts?.Cancel();
+    }
+
+    /// <summary>
+    /// Перезапускает лаунчер с правами администратора
+    /// </summary>
+    private void RestartAsAdministrator()
+    {
+        try
+        {
+            var exePath = Environment.ProcessPath;
+            if (string.IsNullOrWhiteSpace(exePath))
+            {
+                FileLogger.Log("[ADMIN] Cannot restart: process path unknown");
+                return;
+            }
+
+            FileLogger.Log($"[ADMIN] Restarting as administrator: {exePath}");
+
+            var psi = new ProcessStartInfo
+            {
+                FileName = exePath,
+                UseShellExecute = true,
+                Verb = "runas",
+                WorkingDirectory = Environment.CurrentDirectory
+            };
+
+            Process.Start(psi);
+            _dispatcher.Invoke(() => Application.Current.Shutdown());
+        }
+        catch (System.ComponentModel.Win32Exception w32Ex) when (w32Ex.NativeErrorCode == 1223)
+        {
+            // Пользователь отклонил UAC-запрос
+            FileLogger.Log("[ADMIN] UAC prompt declined by user");
+            StatusMessage = LocalizationManager.S("status_admin_required");
+        }
+        catch (Exception ex)
+        {
+            FileLogger.Error("Failed to restart as administrator", ex);
+            StatusMessage = LocalizationManager.F("admin_restart_failed", ex.Message);
+        }
     }
 
     public async ValueTask DisposeAsync()

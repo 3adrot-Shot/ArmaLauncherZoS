@@ -377,6 +377,12 @@ public class LocalizationManager : INotifyPropertyChanged
             ["error_launch_msg"] = "Не удалось запустить игру:\n{0}",
             ["error_install_title"] = "Ошибка установки",
             ["error_install_msg"] = "Не удалось установить {0}:\n{1}\n\nФайлы не были обновлены. Попробуйте запустить установку ещё раз.",
+            ["error_admin_title"] = "Требуются права администратора",
+            ["error_admin_msg"] = "Лаунчеру не хватает прав для записи файлов в папку:\n{0}\n\nПерезапустить лаунчер от имени администратора?",
+            ["admin_btn_restart"] = "Перезапустить",
+            ["admin_btn_cancel"] = "Отмена",
+            ["status_admin_required"] = "Требуются права администратора",
+            ["admin_restart_failed"] = "Не удалось перезапустить с правами администратора: {0}",
 
             // ===== Code-behind messages =====
             ["disk_free_space"] = "Свободно: {0}",
@@ -734,6 +740,12 @@ public class LocalizationManager : INotifyPropertyChanged
             ["error_launch_msg"] = "Failed to launch game:\n{0}",
             ["error_install_title"] = "Installation Error",
             ["error_install_msg"] = "Failed to install {0}:\n{1}\n\nFiles were not updated. Please try the installation again.",
+            ["error_admin_title"] = "Administrator rights required",
+            ["error_admin_msg"] = "The launcher does not have permission to write files to:\n{0}\n\nRestart the launcher as administrator?",
+            ["admin_btn_restart"] = "Restart",
+            ["admin_btn_cancel"] = "Cancel",
+            ["status_admin_required"] = "Administrator rights required",
+            ["admin_restart_failed"] = "Failed to restart as administrator: {0}",
 
             // ===== Code-behind messages =====
             ["disk_free_space"] = "Free: {0}",

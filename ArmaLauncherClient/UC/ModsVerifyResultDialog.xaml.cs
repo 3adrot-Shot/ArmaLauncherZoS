@@ -205,6 +205,7 @@ public class InvalidFileDisplayItem
 {
     public string FileName { get; set; } = "";
     public bool IsMissing { get; set; }
-    public string Icon => IsMissing ? "✕" : "⚠";
-    public string IconColor => IsMissing ? "#ef4444" : "#f59e0b";
+    public bool IsExtra { get; set; }
+    public string Icon => IsMissing ? "✕" : IsExtra ? "🗑" : "⚠";
+    public string IconColor => IsMissing ? "#ef4444" : IsExtra ? "#3b82f6" : "#f59e0b";
 }
