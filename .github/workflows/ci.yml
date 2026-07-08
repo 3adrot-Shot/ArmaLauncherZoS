@@ -31,19 +31,15 @@ jobs:
       - name: Publish client
         run: dotnet publish ArmaLauncherClient/ArmaLauncherClient.csproj --configuration Publish --runtime win-x64 --self-contained true -p:PublishSingleFile=true -o artifacts/client
 
-      - name: Publish server
-        run: dotnet publish LauncherServer/LauncherServer.csproj --configuration Release -o artifacts/server
+      - name: Collect client executable
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path artifacts/release -Force | Out-Null
+          Copy-Item artifacts/client/ArmaLauncherClient.exe artifacts/release/ArmaLauncherClient.exe -Force
 
       - name: Upload client artifact
         uses: actions/upload-artifact@v5
         with:
           name: ArmaLauncherClient-unsigned
-          path: artifacts/client
-          if-no-files-found: error
-
-      - name: Upload server artifact
-        uses: actions/upload-artifact@v5
-        with:
-          name: LauncherServer
-          path: artifacts/server
+          path: artifacts/release/ArmaLauncherClient.exe
           if-no-files-found: error
