@@ -23,6 +23,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
+<<<<<<< HEAD
       - name: Read project version
         id: version
         shell: pwsh
@@ -56,6 +57,8 @@ jobs:
             throw "Release tag version '$tagVersion' does not match project Version '$projectVersion' in ArmaLauncherClient.csproj."
           }
 
+=======
+>>>>>>> 027bbea0a6306575a2ae32ff84e2d9c2c12301d2
       - name: Setup .NET 10
         uses: actions/setup-dotnet@v5
         with:
@@ -67,6 +70,7 @@ jobs:
       - name: Publish client
         run: dotnet publish ArmaLauncherClient/ArmaLauncherClient.csproj --configuration Publish --runtime win-x64 --self-contained true -p:PublishSingleFile=true -o artifacts/client
 
+<<<<<<< HEAD
       - name: Collect client executable
         shell: pwsh
         run: |
@@ -79,6 +83,11 @@ jobs:
           Push-Location artifacts/unsigned
           Compress-Archive -Path ArmaLauncherClient-win-x64-v${{ steps.version.outputs.version }}.exe -DestinationPath ..\ArmaLauncherClient-unsigned.zip -Force
           Pop-Location
+=======
+      - name: Archive unsigned client artifact
+        shell: pwsh
+        run: Compress-Archive -Path artifacts/client/* -DestinationPath artifacts/ArmaLauncherClient-unsigned.zip -Force
+>>>>>>> 027bbea0a6306575a2ae32ff84e2d9c2c12301d2
 
       - name: Upload unsigned artifact for SignPath
         id: upload_unsigned
@@ -132,11 +141,19 @@ jobs:
         uses: actions/upload-artifact@v5
         with:
           name: ArmaLauncherClient-signed
+<<<<<<< HEAD
           path: artifacts/signed/ArmaLauncherClient-win-x64-v${{ steps.version.outputs.version }}.exe
+=======
+          path: artifacts/signed
+>>>>>>> 027bbea0a6306575a2ae32ff84e2d9c2c12301d2
           if-no-files-found: error
 
       - name: Attach signed artifact to release
         if: ${{ github.event_name == 'release' && steps.signpath.outputs.signing-request-id != '' }}
         uses: softprops/action-gh-release@v2
         with:
+<<<<<<< HEAD
           files: artifacts/signed/ArmaLauncherClient-win-x64-v${{ steps.version.outputs.version }}.exe
+=======
+          files: artifacts/signed/**
+>>>>>>> 027bbea0a6306575a2ae32ff84e2d9c2c12301d2
