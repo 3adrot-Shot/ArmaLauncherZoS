@@ -3,7 +3,7 @@
 > Красивый и удобный лаунчер для **Arma Reforger** с поддержкой установки игры, модов, проверки файлов, серверов и быстрой раздачи контента.
 
 <p align="center">
-  <img src="./ArmaLauncherClient/Images/OnlyLogoAU.png" alt="ArmaLauncher Logo" width="220">
+  <img src="./ArmaLauncherClient/Images/Logos/OnlyLogoAU_BF.png" alt="ArmaLauncher Logo" width="220">
 </p>
 
 <p align="center">
